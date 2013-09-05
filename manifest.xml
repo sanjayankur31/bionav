@@ -1,0 +1,17 @@
+<package>
+  <description brief="bionav">
+
+     A bio mimetic navigation system for ROS
+
+  </description>
+  <author>Ankur Sinha</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/bionav</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
