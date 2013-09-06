@@ -12,6 +12,9 @@ cscope.out
 
 logs/
 
+# doxygen outputs dont need to be committed
+doc/html
+
 
 # Lines that start with '#' are comments.
 # ignore objects and libraries
