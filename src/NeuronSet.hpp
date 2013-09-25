@@ -44,7 +44,8 @@ namespace Bionav {
     {
         public:
             /* ====================  LIFECYCLE     ======================================= */
-            NeuronSet ();                             /* constructor */
+            NeuronSet ();                             /**< constructor */
+            ~NeuronSet ();                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
 
@@ -83,14 +84,14 @@ namespace Bionav {
 
 
             /* ====================  DATA MEMBERS  ======================================= */
+            std::string mIdentifier;            /**< Identifier of this neuron set */
+            FiringRateType mActivation;         /**< Activation values of neurons */
+            FiringRateType mFiringRate;         /**< Firing rates of neurons */
 
         private:
             /* ====================  METHODS       ======================================= */
 
             /* ====================  DATA MEMBERS  ======================================= */
-            std::string mIdentifier;            /**< Identifier of this neuron set */
-            FiringRateType mActivation;         /**< Activation values of neurons */
-            FiringRateType mFiringRate;         /**< Firing rates of neurons */
 
     }; /* -----  end of class NeuronSet  ----- */
 

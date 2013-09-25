@@ -11,7 +11,7 @@
  *       Compiler:  gcc
  *
  *         Author:  Ankur Sinha (FranciscoD), ankursinha@fedoraproject.org
- *   Organization:  
+ *   Organization:  University of Technology, Sydney
  *
  * =====================================================================================
  */
@@ -46,7 +46,8 @@ namespace Bionav {
     {
         public:
             /* ====================  LIFECYCLE     ======================================= */
-            SynapseSet ();                             /* constructor */
+            SynapseSet ();                             /**< constructor */
+            ~SynapseSet ();                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
             /**
@@ -143,17 +144,17 @@ namespace Bionav {
             /* ====================  METHODS       ======================================= */
 
             /* ====================  DATA MEMBERS  ======================================= */
-
-        private:
-            /* ====================  METHODS       ======================================= */
-
-            /* ====================  DATA MEMBERS  ======================================= */
             WeightMatrixType mWeightMatrix;
             WeightMatrixType mWeightTraceMatrix;
             bool mHasTrace;                     /**< Does this synapse set need a trace matrix?  */
             long double mEta;                   /**< @f$ \eta @f$ */
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
+
+        private:
+            /* ====================  METHODS       ======================================= */
+
+            /* ====================  DATA MEMBERS  ======================================= */
 
     }; /* -----  end of class SynapseSet  ----- */
 
