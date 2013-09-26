@@ -114,15 +114,15 @@ class Bionavigator
         /* ====================  METHODS       ======================================= */
 
         /* ====================  DATA MEMBERS  ======================================= */
-        HDCells mHDCells;                       /**< Head cell set */
-        RotationCellCounterClockwise mRotationCellCounterClockwise; /**< Counter clockwise rotation cell */
-        RotationCellClockwise mRotationCellClockwise; /**< Clockwise rotation cell */
-        VisionCells mVisionCells;               /**< Vision cell set */
+        HDCells* mpHDCells;                       /**< Head cell set */
+        RotationCellCounterClockwise* mpRotationCellCounterClockwise; /**< Counter clockwise rotation cell */
+        RotationCellClockwise* mpRotationCellClockwise; /**< Clockwise rotation cell */
+        VisionCells* mpVisionCells;               /**< Vision cell set */
 
-        HDSynapseSet mHDSynapseSet;             /**< HD synapse set */
-        HD_VisionSynapseSet mHD_VisionSynapseSet; /**< HD - Vision synapse set */
-        HD_RotationSynapseSet mHD_RotationCellClockwiseSynapseSet; /**< HD - Clockise rotation cell synapse set */
-        HD_RotationSynapseSet mHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
+        HDSynapseSet* mpHDSynapseSet;             /**< HD synapse set */
+        HD_VisionSynapseSet* mpHD_VisionSynapseSet; /**< HD - Vision synapse set */
+        HD_RotationSynapseSet* mpHD_RotationCellClockwiseSynapseSet; /**< HD - Clockise rotation cell synapse set */
+        HD_RotationSynapseSet* mpHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
 
 }; /* -----  end of class Bionavigator  ----- */
 

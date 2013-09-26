@@ -56,17 +56,31 @@ namespace Bionav {
             /**
              * @brief Set the identifier for this synapse set
              *
-             * @param std::string identifier
+             * @param identifier
              *
              * @return void */
             inline void SetIdentifier (std::string identifier);
+
+            /**
+             * @brief Set the dimensions of the neuron set
+             *
+             * @param dimensionX X dimension
+             * @param dimensionY Y dimension
+             *
+             * @return void
+             */
+            void SetDimension (long double dimensionX, long double dimensionY)
+            {
+                mDimensionX = dimensionX;
+                mDimensionY = dimensionY;
+            };
 
             /**
              * @brief Update the activations
              *
              * @param None
              *
-             * @return None 
+             * @return void 
              */
             void UpdateActivations () =0;
 
@@ -75,7 +89,7 @@ namespace Bionav {
              *
              * @param None
              *
-             * @return None
+             * @return void
             */
             void FiringRate () =0;
 
@@ -87,6 +101,8 @@ namespace Bionav {
             std::string mIdentifier;            /**< Identifier of this neuron set */
             FiringRateType mActivation;         /**< Activation values of neurons */
             FiringRateType mFiringRate;         /**< Firing rates of neurons */
+            long double mDimensionX;            /**< X dimension */
+            long double mDimensionY;            /**< Y dimension */
 
         private:
             /* ====================  METHODS       ======================================= */

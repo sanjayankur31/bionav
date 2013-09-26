@@ -148,6 +148,7 @@ namespace Bionav {
             WeightMatrixType mWeightTraceMatrix;
             bool mHasTrace;                     /**< Does this synapse set need a trace matrix?  */
             long double mEta;                   /**< @f$ \eta @f$ */
+            long double mLearningRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
 
