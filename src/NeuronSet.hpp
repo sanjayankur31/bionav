@@ -38,6 +38,13 @@ namespace Bionav {
      *
      * Each set is connected to other sets via plastic or stiff synapses
      * 
+     * @note There isn't a point of implementing a pure abstract
+     * UpdateActivation method since each set of cells will have a
+     * different set of input synapses. I'd rather not use variadic
+     * arguments and just implement it when needed for various cells.
+     * In my case, it's only needed for the HDCell ensemble. The rest
+     * will just fire as feature detectors.
+     *
      */
     template <class FiringRateType>
     class NeuronSet
@@ -48,6 +55,15 @@ namespace Bionav {
             ~NeuronSet ();                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
+            /**
+             * @brief Does this set carry a trace?
+             *
+             * @param None
+             *
+             * @return true or false
+             */
+            inline bool HasTrace() { return mHasTrace; }
+
 
             /* ====================  MUTATORS      ======================================= */
 
@@ -69,29 +85,43 @@ namespace Bionav {
              *
              * @return void
              */
-            void SetDimension (long double dimensionX, long double dimensionY)
-            {
-                mDimensionX = dimensionX;
-                mDimensionY = dimensionY;
-            };
+            inline void SetDimension (long double dimensionX, long double dimensionY);
 
             /**
-             * @brief Update the activations
+             * @brief Calculate and return firing rates
              *
              * @param None
              *
-             * @return void 
-             */
-            void UpdateActivations () =0;
+             * @return FiringRateType updated firing rate
+            */
+            FiringRateType FiringRate () =0;
 
             /**
-             * @brief Calculate firing rates
+             * @brief Update the trace and return it
+             *
+             * @param None
+             *
+             * @return FiringRateType the trace firing rate
+             * */
+            FiringRateType FiringRateTrace() =0;
+
+            /**
+             * @brief Enable trace matrix
              *
              * @param None
              *
              * @return void
-            */
-            void FiringRate () =0;
+             */
+            inline void EnableTrace ();
+
+            /**
+             * @brief Disable trace matrix
+             *
+             * @param None
+             *
+             * @return void
+             */
+            inline void DisableTrace ();
 
         protected:
             /* ====================  METHODS       ======================================= */
@@ -101,8 +131,10 @@ namespace Bionav {
             std::string mIdentifier;            /**< Identifier of this neuron set */
             FiringRateType mActivation;         /**< Activation values of neurons */
             FiringRateType mFiringRate;         /**< Firing rates of neurons */
+            FiringRateType mFiringRateTrace;    /**< Trace firing rates of neurons */
             long double mDimensionX;            /**< X dimension */
             long double mDimensionY;            /**< Y dimension */
+            bool mHasTrace;                     /**< Does this provide a trace matrix?  */
 
         private:
             /* ====================  METHODS       ======================================= */

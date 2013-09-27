@@ -51,15 +51,6 @@ namespace Bionav {
 
             /* ====================  ACCESSORS     ======================================= */
             /**
-             * @brief Does this set carry a trace?
-             *
-             * @param None
-             *
-             * @return true or false
-             */
-            inline bool HasTrace() { return mHasTrace; }
-
-            /**
              * @brief Is this synapse set modifiable?
              *
              * @param None
@@ -77,42 +68,14 @@ namespace Bionav {
             /**
              * @brief Update synaptic weights
              *
-             * @param PreSynapticFiringRateType preSynapticFiringRate The
-             * presynaptic firing rate
+             * @param preSynapticFiringRate The presynaptic firing rate
              *
-             * @param PostSynapticFiringRateType postSynapticFiringRate The
-             * postsynaptic firing rate
+             * @param postSynapticFiringRate The postsynaptic firing rate
              *
              * @return None
              */
             void UpdateWeight(PreSynapticFiringRateType preSynapticFiringRate, PostSynapticFiringRateType postSynapticFiringRate) =0;
 
-            /**
-             * @brief Update the synaptic trace, if enabled
-             *
-             * @param None
-             *
-             * @return None
-             * */
-            void UpdateWeightTrace() =0;
-
-            /**
-             * @brief Enable trace matrix
-             *
-             * @param None
-             *
-             * @return void
-             */
-            inline void EnableTrace ();
-
-            /**
-             * @brief Disable trace matrix
-             *
-             * @param None
-             *
-             * @return void
-             */
-            inline void DisableTrace ();
 
             /**
              * @brief Enable plasticity of synaptic weights
@@ -135,22 +98,35 @@ namespace Bionav {
             /**
              * @brief Set the identifier for this synapse set
              *
-             * @param std::string identifier
+             * @param identifier
              *
              * @return void */
             inline void SetIdentifier (std::string identifier);
 
+            /**
+             * @brief Set the dimensions of the synapse set
+             *
+             * @param dimensionX X dimension
+             * @param dimensionY Y dimension
+             *
+             * @return void
+             */
+            void SetDimension (long double dimensionX, long double dimensionY)
+            {
+                mDimensionX = dimensionX;
+                mDimensionY = dimensionY;
+            };
         protected:
             /* ====================  METHODS       ======================================= */
 
             /* ====================  DATA MEMBERS  ======================================= */
             WeightMatrixType mWeightMatrix;
-            WeightMatrixType mWeightTraceMatrix;
-            bool mHasTrace;                     /**< Does this synapse set need a trace matrix?  */
             long double mEta;                   /**< @f$ \eta @f$ */
             long double mLearningRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
+            long double mDimensionX;            /**< X dimension */
+            long double mDimensionY;            /**< Y dimension */
 
         private:
             /* ====================  METHODS       ======================================= */

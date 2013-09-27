@@ -139,3 +139,20 @@ Bionav::SynapseSet::SetIdentifier ( std::string identifier )
     }
 }		/* -----  end of method SynapseSet::SetIdentifier  ----- */
 
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  SynapseSet
+ *      Method:  SynapseSet :: SetDimensions
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    inline void
+Bionav::SynapseSet::SetDimension ( )
+{
+    mDimensionX = dimensionX;
+    mDimensionY = dimensionY;
+
+    ROS_DEBUG("%s: Dimensions set to %d x %d", mIdentifier, mDimensionX, mDimensionY);
+    return ;
+}		/* -----  end of method SynapseSet::SetDimension  ----- */
+

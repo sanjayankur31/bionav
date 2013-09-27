@@ -26,6 +26,8 @@
 #include "VisionCells.hpp"
 #include "HD_VisionSynapseSet.hpp"
 #include "HD_RotationSynapseSet.hpp"
+#include "ros/ros.h"
+#include "sensor_msgs/Imu.h"
 
 
 /*
@@ -82,14 +84,19 @@ class Bionavigator
         void Calibrate ();
 
         /**
-         * @brief Process inputs and update current states of synapses and
-         * neuron sets
+         * @brief Call back method that will process incoming angular velocity
+         * messages and update the system accordingly
          *
-         * @param None
+         * @param rImuMessage reference to the received message
          *
          * @return None
+         *
+         * @todo When I work on the vision part, I'll need to use a message
+         * filter TimeSynchronizer to keep the inputs from these nodes in sync
+         *
+         * http://wiki.ros.org/message_filters
          */
-        void UpdateState ();
+        void CallbackUpdateState (const sensor_msgs::Imu::ConstPtr& rImuMessage);
 
         /**
          * @brief Publish current direction
@@ -102,7 +109,6 @@ class Bionavigator
          * @return None
          */
         void PublishDirection ();
-
 
 
     protected:
@@ -123,6 +129,9 @@ class Bionavigator
         HD_VisionSynapseSet* mpHD_VisionSynapseSet; /**< HD - Vision synapse set */
         HD_RotationSynapseSet* mpHD_RotationCellClockwiseSynapseSet; /**< HD - Clockise rotation cell synapse set */
         HD_RotationSynapseSet* mpHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
+
+        ros::Subscriber mSubscriber;            /**< ROS subscriber handle */
+        ros::NodeHandle mNodeHandle;            /**< ROS Node Handle */
 
 }; /* -----  end of class Bionavigator  ----- */
 

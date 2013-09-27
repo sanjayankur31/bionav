@@ -50,6 +50,20 @@ class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double, Eigen::
 
         HDSynapseSet& operator = ( const HDSynapseSet &other ); /* assignment operator */
 
+        /**
+         * @brief Initialize the matrices.
+         *
+         * The constructor sets a default dimension set. One can modify it and
+         * then call Init to resize and initialize the matrices accordingly
+         *
+         * This assumes that you've set your dimensions. It does no checks at
+         * all.
+         *
+         * @param None
+         *
+         * @return None
+         */
+        void Init ();
     protected:
         /* ====================  METHODS       ======================================= */
 

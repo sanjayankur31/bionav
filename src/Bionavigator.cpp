@@ -27,6 +27,28 @@
  */
 Bionavigator::Bionavigator ()
 {
+        int head_cell_dimension_x = 100;
+        int head_cell_dimension_y = 1;
+
+        mpHDCells = new HDCells ();
+        mpRotationCellCounterClockwise  = new RotationCellCounterClockwise ();
+        mpRotationCellClockwise = new RotationCellClockwise ();
+        mpVisionCells = new VisionCells ();
+
+        mpHDSynapseSet = new HDSynapseSet ();
+        mpHD_VisionSynapseSet = new HD_VisionSynapseSet ();
+        mpHD_RotationCellClockwiseSynapseSet = new HD_RotationSynapseSet ();
+        mpHD_RotationCellCounterClockwiseSynapseSet = new HD_RotationSynapseSet ();
+
+        mpHDCells->SetDimension (head_cell_dimension_x, head_cell_dimension_y);
+        mpHDCells->Init ();
+        /*  Don't need to do this for rotation cells, since they are two
+         *  individual cells at the moment
+         */
+
+        mpHDSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_x);
+
+
 }  /* -----  end of method Bionavigator::Bionavigator  (constructor)  ----- */
 
 /*
@@ -49,6 +71,17 @@ Bionavigator::Bionavigator ( const Bionavigator &other )
  */
 Bionavigator::~Bionavigator ()
 {
+
+    /*  delete my brain elements */
+    delete mpHDCells;
+    delete mpRotationCellCounterClockwise;
+    delete mpRotationCellCounterClockwise;
+    delete mpVisionCells;
+
+    delete mpHDSynapseSet;
+    delete mpHD_VisionSynapseSet;
+    delete mpHD_RotationCellClockwiseSynapseSet;
+    delete mpHD_RotationCellCounterClockwiseSynapseSet;
 }  /* -----  end of method Bionavigator::~Bionavigator  (destructor)  ----- */
 
 /*
@@ -65,4 +98,61 @@ Bionavigator::operator = ( const Bionavigator &other )
     }
     return *this;
 }  /* -----  end of method Bionavigator::operator =  (assignment operator)  ----- */
+
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: Init
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::Init (  )
+{
+    return ;
+}		/* -----  end of method Bionavigator::Init  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: Calibrate
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::Calibrate (  )
+{
+    return ;
+}		/* -----  end of method Bionavigator::Calibrate  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: UpdateState
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::UpdateState ( )
+{
+    return ;
+}		/* -----  end of method Bionavigator::UpdateState  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: PublishDirection
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::PublishDirection (  )
+{
+    return ;
+}		/* -----  end of method Bionavigator::PublishDirection  ----- */
 
