@@ -47,6 +47,13 @@ Bionavigator::Bionavigator ()
          */
 
         mpHDSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_x);
+        mpHD_RotationCellCounterClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_y);
+        mpHD_RotationCellClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_y);
+
+        /**
+         * @todo Vision cell initialization
+         * 
+         */
 
 
 }  /* -----  end of method Bionavigator::Bionavigator  (constructor)  ----- */
