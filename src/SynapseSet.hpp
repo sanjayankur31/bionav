@@ -59,6 +59,23 @@ namespace Bionav {
              */
             inline bool IsPlastic() { return mIsPlastic; }
 
+            /**
+             * @brief The identifier
+             *
+             * @param none
+             *
+             * @return mIdentifier
+             */
+            inline std::string Identifier () { return mIdentifier; }
+
+            /**
+             * @brief Return the weight matrix for this synapse set
+             * 
+             * @param None
+             *
+             * @return mWeightMatrix The weight matrix of this synapse set
+             */
+            inline WeightMatrixType WeightMatrix () { return mWeightMatrix; }
             /* ====================  MUTATORS      ======================================= */
 
 

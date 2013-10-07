@@ -96,6 +96,30 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
                 Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
                 );
 
+        /**
+         * @brief Return the head direction of the network
+         *
+         * @param None
+         *
+         * @return Current head direction of network
+         */
+        long double CurrentHeadDirection ();
+
+        /**
+         * @brief Update the "directional range" of the system
+         *
+         * This isn't exactly the same as the directional firing range of head
+         * cells. That is learnt during training. This variable just stores the
+         * degrees each cell denotes, as a convenience.
+         * 
+         * @param None
+         *
+         * @return void
+         */
+        void UpdateDirectionalRange () {
+            mDirectionalRange = 360/mDimensionX;
+            ROS_DEBUG("%s: directional range updated to: %ld", mIdentifier, mDirectionalRange);
+        }
 
         /* ====================  OPERATORS     ======================================= */
 
@@ -114,6 +138,7 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
         long double mTau;                       /**< Time constant */
         long double mAlpha;                     /**< Alpha in firing rate equation */
         long double mBeta;                      /**< Beta in firing rate equation */
+        long double mDirectionalRange;          /**< Directional range of a cell */
 
 }; /* -----  end of class HDCells  ----- */
 

@@ -64,6 +64,33 @@ namespace Bionav {
              */
             inline bool HasTrace() { return mHasTrace; }
 
+            /**
+             * @brief The identifier
+             *
+             * @param none
+             *
+             * @return mIdentifier
+             */
+            inline std::string Identifier () { return mIdentifier; }
+
+            /**
+             * @brief return Y dimension
+             *
+             * @param None
+             *
+             * @return mDimensionY Y dimension
+             */
+            long double DimensionY () { return mDimensionY; }
+
+            /**
+             * @brief return X dimension
+             *
+             * @param None
+             *
+             * @return mDimensionX X dimension
+             */
+            long double DimensionX () { return mDimensionX; }
+
 
             /* ====================  MUTATORS      ======================================= */
 
@@ -88,22 +115,40 @@ namespace Bionav {
             inline void SetDimension (long double dimensionX, long double dimensionY);
 
             /**
-             * @brief Calculate and return firing rates
+             * @brief Return firing rates
              *
              * @param None
              *
-             * @return FiringRateType updated firing rate
+             * @return FiringRateType firing rate matrix
             */
-            FiringRateType FiringRate () =0;
+            inline FiringRateType FiringRate () { return mFiringRate ;}
 
             /**
-             * @brief Update the trace and return it
+             * @brief Return firing rate trace matrix
              *
              * @param None
              *
              * @return FiringRateType the trace firing rate
              * */
-            FiringRateType FiringRateTrace() =0;
+            FiringRateType FiringRateTrace() { return mFiringRateTrace; }
+
+            /**
+             * @brief Calculate new firing rate matrix
+             *
+             * @param Nonw
+             *
+             * @return None
+             */
+            void UpdateFiringRate () =0;
+
+            /**
+             * @brief Calculate new trace
+             *
+             * @param None
+             *
+             * @return None
+             */
+            void UpdateFiringRateTrace () =0;
 
             /**
              * @brief Enable trace matrix

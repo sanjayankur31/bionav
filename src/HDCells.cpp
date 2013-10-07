@@ -132,8 +132,44 @@ UpdateActivation (
     Eigen::Matrix<long double, Eigen::Dynamic, 1>
 HDCells::FiringRate ( )
 {
-    mFiringRate = ((((1 + (((mActivation.array () -mAlpha))*(-2 * mBeta)).exp ()).inverse ())).matrix ());
-
     return mFiringRate;
 }		/* -----  end of method HDCells::FiringRate  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  HDCells
+ *      Method:  HDCells :: UpdateFiringRate
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+HDCells::UpdateFiringRate ( )
+{
+    mFiringRate = ((((1 + (((mActivation.array () -mAlpha))*(-2 * mBeta)).exp ()).inverse ())).matrix ());
+}		/* -----  end of method HDCells::UpdateFiringRate  ----- */
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  HDCells
+ *      Method:  HDCells :: CurrentHeadDirection
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    long double
+HDCells::CurrentHeadDirection ( )
+{
+    long double max_value = mFiringRate.maxCoeff ();
+
+    /**
+     * @note Is there a better way of calculating this? Without iterating
+     * maybe?
+     */
+    for (int i = 0; i < mDimensionX; i +=1)
+    {
+        if (mFiringRate(k,0) == max_value)
+            return ((k+1) * mDirectionalRange);
+    }
+    return -1;
+}		/* -----  end of method HDCells::CurrentHeadDirection  ----- */
 

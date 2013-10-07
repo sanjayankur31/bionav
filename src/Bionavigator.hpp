@@ -84,8 +84,10 @@ class Bionavigator
         void Calibrate ();
 
         /**
-         * @brief Call back method that will process incoming angular velocity
-         * messages and update the system accordingly
+         * @brief Publish current direction
+         *
+         * @todo I'll need to add more methods as I look to implement land mark
+         * navigation
          *
          * @param rImuMessage reference to the received message
          *
@@ -96,19 +98,7 @@ class Bionavigator
          *
          * http://wiki.ros.org/message_filters
          */
-        void CallbackUpdateState (const sensor_msgs::Imu::ConstPtr& rImuMessage);
-
-        /**
-         * @brief Publish current direction
-         *
-         * @todo I'll need to add more methods as I look to implement land mark
-         * navigation
-         *
-         * @param None
-         *
-         * @return None
-         */
-        void PublishDirection ();
+        void CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMessage);
 
 
     protected:
@@ -118,6 +108,27 @@ class Bionavigator
 
     private:
         /* ====================  METHODS       ======================================= */
+
+        /**
+         * @brief initialize the system to an initial heading
+         *
+         * Basically, create a peak and let it stabilize so we can beging to
+         * process angular velocity inputs.
+         *
+         * @param None
+         *
+         * @return None
+         */
+        void SetInitialDirection ();
+
+        /**
+         * @brief Do the work, update the head direction
+         *
+         * @param None
+         *
+         * @return mHeadDirection the updated head direction
+         */
+        void HeadDirection ();
 
         /* ====================  DATA MEMBERS  ======================================= */
         HDCells* mpHDCells;                       /**< Head cell set */
@@ -132,6 +143,12 @@ class Bionavigator
 
         ros::Subscriber mSubscriber;            /**< ROS subscriber handle */
         ros::NodeHandle mNodeHandle;            /**< ROS Node Handle */
+        ros::Publisher mHeadDirectionPublisher; /**< ROS publisher handle */
+
+        bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
+        bool mIsCalibrated;                     /**< Is the network calibrated */
+        long double mCount;                     /**< Keep a count of number of IMU messages we've processed */
+        long double mHeadDirection;             /**< The head direction */
 
 }; /* -----  end of class Bionavigator  ----- */
 
