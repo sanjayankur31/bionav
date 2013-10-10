@@ -139,7 +139,7 @@ Bionavigator::Init (  )
     /*
      * Subscribe to ros node
      */
-    mSubscriber = mNodeHandle.subscribe("imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
+    mSubscriber = mNodeHandle.subscribe("torso_lift_imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
     ROS_ASSERT(mSubscriber);
 
     /*  Can I use a long double? */

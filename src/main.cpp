@@ -28,13 +28,14 @@
     int
 main ( int argc, char **argv )
 {
-    ros::init(argc, argv, "bionav");
+    ros::init(argc, argv, "bionav", ros::init_options::NoSigintHandler);
 
-    Bionavigator bionavigator;
-
+    Bionavigator* bionavigator = new Bionavigator ();
+    bionavigator->Init ();
 
     ros::spin();
 
     return 0;
 }				/* ----------  end of function main  ---------- */
+
 
