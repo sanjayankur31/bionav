@@ -108,7 +108,7 @@ Bionavigator::Init (  )
     mpHDCells->UpdateDirectionalRange ();
     mpHDCells->SetIdentifier (std::string("HD Cells"));
     mpHDCells->Init ();
-    ROS_DEBUG("%s: Initialized", mpHDCells->Identifier());
+    ROS_DEBUG("%s: Initialized", (mpHDCells->Identifier()).c_str ());
     /*  Don't need to do this for rotation cells, since they are two
      *  individual cells at the moment
      */
@@ -117,18 +117,18 @@ Bionavigator::Init (  )
     mpHDSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_x);
     mpHDSynapseSet->SetIdentifier(std::string("HD - CANN synapse set"));
     mpHDSynapseSet->Init ();
-    ROS_DEBUG("%s: Initialized", mpHDSynapseSet->Identifier());
+    ROS_DEBUG("%s: Initialized", (mpHDSynapseSet->Identifier()).c_str ());
 
 
     mpHD_RotationCellCounterClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_y);
     mpHD_RotationCellCounterClockwiseSynapseSet->SetIdentifier(std::string("HD - Rotation cell counter clockwise synapse set"));
     mpHD_RotationCellCounterClockwiseSynapseSet->Init ();
-    ROS_DEBUG("%s: Initialized", mpHD_RotationCellCounterClockwiseSynapseSet->Identifier());
+    ROS_DEBUG("%s: Initialized", (mpHD_RotationCellCounterClockwiseSynapseSet->Identifier()).c_str ());
 
     mpHD_RotationCellClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_y);
     mpHD_RotationCellClockwiseSynapseSet->SetIdentifier(std::string("HD - Rotation cell clockwise synapse set"));
     mpHD_RotationCellClockwiseSynapseSet->Init ();
-    ROS_DEBUG("%s: Initialized", mpHD_RotationCellClockwiseSynapseSet->Identifier());
+    ROS_DEBUG("%s: Initialized", (mpHD_RotationCellClockwiseSynapseSet->Identifier()).c_str ());
 
     /**
      * @todo Vision cell initialization
@@ -139,11 +139,11 @@ Bionavigator::Init (  )
     /*
      * Subscribe to ros node
      */
-    mSubscriber = mNodeHandle.subscribe("imu/data", 50, CallbackPublishDirection);
+    mSubscriber = mNodeHandle.subscribe("imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
     ROS_ASSERT(mSubscriber);
 
     /*  Can I use a long double? */
-    mHeadDirectionPublisher = mNodeHandle.advertise<long double>("head_direction",10);
+    mHeadDirectionPublisher = mNodeHandle.advertise<std_msgs::Float64>("head_direction",10);
     ROS_ASSERT(mHeadDirectionPublisher);
 
 
@@ -192,7 +192,9 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
      */
     HeadDirection ();
 
-    mHeadDirectionPublisher.publish(mHeadDirection);
+/*     mHeadDirectionPublisher.publish(mHeadDirection);
+ */
+
 
 
 }		/* -----  end of method Bionavigator::CallbackPublishDirection  ----- */
@@ -230,7 +232,7 @@ Bionavigator::HeadDirection ( )
 
     if (mHeadDirection == -1)
     {
-        ROS_DEBUG("%s: Something went wrong. Head direction received -1", mIdentifier);
+        ROS_DEBUG("%s: Something went wrong. Head direction received -1", (mpHDCells->Identifier()).c_str ());
     }
 }		/* -----  end of method Bionavigator::HeadDirection  ----- */
 

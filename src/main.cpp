@@ -32,6 +32,7 @@ main ( int argc, char **argv )
 
     Bionavigator bionavigator;
 
+
     ros::spin();
 
     return 0;

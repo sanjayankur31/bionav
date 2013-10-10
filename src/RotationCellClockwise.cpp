@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  VisionCells.cpp
+ *       Filename:  RotationCellClockwise.cpp
  *
- *    Description:  Definition file for VisionCells
+ *    Description:  Definition file
  *
  *        Version:  1.0
- *        Created:  19/09/13 11:47:28
+ *        Created:  10/10/13 11:57:00
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -17,54 +17,54 @@
  */
 
 
-#include "VisionCells.hpp"
+#include "RotationCellClockwise.hpp"
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
- *      Method:  VisionCells
+ *       Class:  RotationCellClockwise
+ *      Method:  RotationCellClockwise
  * Description:  constructor
  *--------------------------------------------------------------------------------------
  */
-VisionCells::VisionCells ()
+RotationCellClockwise::RotationCellClockwise ()
 {
-}  /* -----  end of method VisionCells::VisionCells  (constructor)  ----- */
+}  /* -----  end of method RotationCellClockwise::RotationCellClockwise  (constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
- *      Method:  VisionCells
+ *       Class:  RotationCellClockwise
+ *      Method:  RotationCellClockwise
  * Description:  copy constructor
  *--------------------------------------------------------------------------------------
  */
-VisionCells::VisionCells ( const VisionCells &other )
+RotationCellClockwise::RotationCellClockwise ( const RotationCellClockwise &other )
 {
-}  /* -----  end of method VisionCells::VisionCells  (copy constructor)  ----- */
+}  /* -----  end of method RotationCellClockwise::RotationCellClockwise  (copy constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
- *      Method:  ~VisionCells
+ *       Class:  RotationCellClockwise
+ *      Method:  ~RotationCellClockwise
  * Description:  destructor
  *--------------------------------------------------------------------------------------
  */
-VisionCells::~VisionCells ()
+RotationCellClockwise::~RotationCellClockwise ()
 {
-}  /* -----  end of method VisionCells::~VisionCells  (destructor)  ----- */
+}  /* -----  end of method RotationCellClockwise::~RotationCellClockwise  (destructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
+ *       Class:  RotationCellClockwise
  *      Method:  operator =
  * Description:  assignment operator
  *--------------------------------------------------------------------------------------
  */
-    VisionCells&
-VisionCells::operator = ( const VisionCells &other )
+    RotationCellClockwise&
+RotationCellClockwise::operator = ( const RotationCellClockwise &other )
 {
     if ( this != &other ) {
     }
     return *this;
-}  /* -----  end of method VisionCells::operator =  (assignment operator)  ----- */
+}  /* -----  end of method RotationCellClockwise::operator =  (assignment operator)  ----- */
 

@@ -20,7 +20,7 @@
 #ifndef  RotationCellClockwise_INC
 #define  RotationCellClockwise_INC
 
-#include "NeuronSet"
+#include "NeuronSet.hpp"
 /*
  * =====================================================================================
  *        Class:  RotationCellClockwise
@@ -46,6 +46,8 @@ class RotationCellClockwise: public Bionav::NeuronSet<long double>
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
+        virtual void UpdateFiringRate () { }
+        virtual void UpdateFiringRateTrace () { }
 
         /* ====================  OPERATORS     ======================================= */
 

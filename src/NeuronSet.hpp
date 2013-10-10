@@ -20,6 +20,9 @@
 #ifndef  NeuronSet_INC
 #define  NeuronSet_INC
 
+#include <iostream>
+#include "ros/ros.h"
+
 namespace Bionav {
 
     /*
@@ -45,14 +48,30 @@ namespace Bionav {
      * In my case, it's only needed for the HDCell ensemble. The rest
      * will just fire as feature detectors.
      *
+     * All implementations also go here. Read here why:
+     * http://stackoverflow.com/questions/8752837/undefined-reference-to-template-class-constructor
+     *
      */
     template <class FiringRateType>
     class NeuronSet
     {
         public:
             /* ====================  LIFECYCLE     ======================================= */
-            NeuronSet ();                             /**< constructor */
-            ~NeuronSet ();                             /**< destructor */
+            NeuronSet ()
+            {
+                /*  A default place holder name that must be changed
+                 *
+                 *  I set it here for two reasons:
+                 *
+                 *  1. It'll tell me if I haven't changed it
+                 *  2. It'll be used to ensure that the name is only set once
+                 *
+                */
+                mIdentifier = std::string("NeuronSet");
+
+            }
+
+            ~NeuronSet () { }                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
             /**
@@ -102,7 +121,17 @@ namespace Bionav {
              * @param identifier
              *
              * @return void */
-            inline void SetIdentifier (std::string identifier);
+            inline void SetIdentifier (std::string identifier)
+            {
+                if(mIdentifier != std::string ("NeuronSet")) {
+                    ROS_DEBUG ("%s: Identifier already set. Unable to comply!", mIdentifier.c_str ());
+                }
+                else {
+                    mIdentifier = identifier;
+                    ROS_DEBUG("%s: New identifier set.", mIdentifier.c_str ());
+                }
+                return ;
+            }
 
             /**
              * @brief Set the dimensions of the neuron set
@@ -112,7 +141,15 @@ namespace Bionav {
              *
              * @return void
              */
-            inline void SetDimension (long double dimensionX, long double dimensionY);
+            inline void SetDimension (long double dimensionX, long double dimensionY)
+            {
+                mDimensionX = dimensionX;
+                mDimensionY = dimensionY;
+
+                ROS_DEBUG("%s: Dimensions set to %Lf x %Lf", mIdentifier.c_str (), mDimensionX, mDimensionY);
+                return ;
+            }
+
 
             /**
              * @brief Return firing rates
@@ -139,7 +176,7 @@ namespace Bionav {
              *
              * @return None
              */
-            void UpdateFiringRate () =0;
+            virtual void UpdateFiringRate () =0;
 
             /**
              * @brief Calculate new trace
@@ -148,7 +185,7 @@ namespace Bionav {
              *
              * @return None
              */
-            void UpdateFiringRateTrace () =0;
+            virtual void UpdateFiringRateTrace () =0;
 
             /**
              * @brief Enable trace matrix
@@ -157,7 +194,19 @@ namespace Bionav {
              *
              * @return void
              */
-            inline void EnableTrace ();
+            inline void EnableTrace ()
+            {
+                if (mHasTrace == true)
+                {
+                    ROS_DEBUG("%s: Trace already enabled.", mIdentifier.c_str ());
+                }
+                else 
+                {
+                    mHasTrace = true;
+                    ROS_DEBUG("%s: Trace enabled.",mIdentifier.c_str ());
+                }
+                return;
+            }
 
             /**
              * @brief Disable trace matrix
@@ -166,7 +215,19 @@ namespace Bionav {
              *
              * @return void
              */
-            inline void DisableTrace ();
+            inline void DisableTrace ()
+            {
+                if(mHasTrace == false)
+                {
+                    ROS_DEBUG("%s: Trace already disabled.", mIdentifier.c_str ());
+                }
+                else
+                {
+                    mHasTrace = false;
+                    ROS_DEBUG("%s: Trace disabled.",mIdentifier.c_str ());
+                }
+                return ;
+            }
 
         protected:
             /* ====================  METHODS       ======================================= */

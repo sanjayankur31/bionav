@@ -26,8 +26,10 @@
 #include "VisionCells.hpp"
 #include "HD_VisionSynapseSet.hpp"
 #include "HD_RotationSynapseSet.hpp"
+#include "HDSynapseSet.hpp"
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
+#include "std_msgs/Float64.h"
 
 
 /*

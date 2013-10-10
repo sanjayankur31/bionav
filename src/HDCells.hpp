@@ -38,7 +38,7 @@
  * @todo Verify forumule implementations
  */
 
-class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynamic, 1>>
+class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynamic, 1> >
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -85,11 +85,14 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
          * Some constants still haven't been defined. I need to see where
          * they'll fall, or whether I should just insert them already scaled
          *
+         * For the time being, I assume a single vision cell
+         *
          */
         void UpdateActivation (
                 long double clockwiseRotationCellFiringRate,
                 long double counterclockwiseRotationCellFiringRate,
-                Eigen::Matrix<long double, Eigen::Dynamic, 1> visionCellFiringRate,
+                //Eigen::Matrix<long double, Eigen::Dynamic, 1> visionCellFiringRate,
+                long double,
                 Eigen::Matrix<long double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
                 Eigen::Matrix<long double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
                 Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
@@ -118,8 +121,11 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
          */
         void UpdateDirectionalRange () {
             mDirectionalRange = 360/mDimensionX;
-            ROS_DEBUG("%s: directional range updated to: %ld", mIdentifier, mDirectionalRange);
+            ROS_DEBUG("%s: directional range updated to: %Lf", mIdentifier.c_str (), mDirectionalRange);
         }
+
+        virtual void UpdateFiringRate ();
+        virtual void UpdateFiringRateTrace ();
 
         /* ====================  OPERATORS     ======================================= */
 
@@ -139,6 +145,14 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
         long double mAlpha;                     /**< Alpha in firing rate equation */
         long double mBeta;                      /**< Beta in firing rate equation */
         long double mDirectionalRange;          /**< Directional range of a cell */
+
+        /*  Handle these. Put them in their classes */
+        long double mPhi0;
+        long double mC_HD;
+        long double mInhibitionRate;
+        long double mPhi1;
+        long double mC_HD_ROT;
+        long double mPhi2;
 
 }; /* -----  end of class HDCells  ----- */
 

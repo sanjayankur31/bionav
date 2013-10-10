@@ -16,6 +16,8 @@
  * =====================================================================================
  */
 
+#include "HDCells.hpp"
+
 
 /*
  *--------------------------------------------------------------------------------------
@@ -100,10 +102,11 @@ HDCells::Init ( )
  *--------------------------------------------------------------------------------------
  */
     void
-UpdateActivation (
+HDCells::UpdateActivation (
         long double clockwiseRotationCellFiringRate,
         long double counterclockwiseRotationCellFiringRate,
-        Eigen::Matrix<long double, Eigen::Dynamic, 1> visionCellFiringRate,
+        //Eigen::Matrix<long double, Eigen::Dynamic, 1> visionCellFiringRate,
+        long double visionCellFiringRate,
         Eigen::Matrix<long double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
         Eigen::Matrix<long double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
         Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
@@ -112,7 +115,7 @@ UpdateActivation (
 {
     /*  Because you can't use and modify a matrix simultaneously */
     Eigen::Matrix<long double, Eigen::Dynamic, 1> temp_matrix;
-    temp_matrix.resize(mDimension,1);
+    temp_matrix.resize(mDimensionX,1);
 
     for (long double i = 0; i < 1; i += mDeltaT ) {
 
@@ -120,20 +123,6 @@ UpdateActivation (
         mActivation = temp_matrix;
     }
 }		/* -----  end of method HDCells::UpdateActivations  ----- */
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: FiringRate
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    Eigen::Matrix<long double, Eigen::Dynamic, 1>
-HDCells::FiringRate ( )
-{
-    return mFiringRate;
-}		/* -----  end of method HDCells::FiringRate  ----- */
 
 
 /*
@@ -148,6 +137,19 @@ HDCells::UpdateFiringRate ( )
 {
     mFiringRate = ((((1 + (((mActivation.array () -mAlpha))*(-2 * mBeta)).exp ()).inverse ())).matrix ());
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  HDCells
+ *      Method:  HDCells :: UpdateFiringRateTrace
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+HDCells::UpdateFiringRateTrace ( )
+{
+}		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
@@ -165,7 +167,7 @@ HDCells::CurrentHeadDirection ( )
      * @note Is there a better way of calculating this? Without iterating
      * maybe?
      */
-    for (int i = 0; i < mDimensionX; i +=1)
+    for (int k = 0; k < mDimensionX; k +=1)
     {
         if (mFiringRate(k,0) == max_value)
             return ((k+1) * mDirectionalRange);

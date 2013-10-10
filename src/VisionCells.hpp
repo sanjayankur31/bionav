@@ -36,7 +36,7 @@
  * implementation is out of the scope for this project currently
  * 
  */
-class VisionCells
+class VisionCells: public Bionav::NeuronSet <long double>
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -47,6 +47,8 @@ class VisionCells
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
+        virtual void UpdateFiringRate () { }
+        virtual void UpdateFiringRateTrace () { }
 
         /* ====================  OPERATORS     ======================================= */
 

@@ -19,6 +19,9 @@
 #ifndef  SynapseSet_INC
 #define  SynapseSet_INC
 
+#include <iostream>
+#include "ros/ros.h"
+
 namespace Bionav {
 
     /*
@@ -46,8 +49,15 @@ namespace Bionav {
     {
         public:
             /* ====================  LIFECYCLE     ======================================= */
-            SynapseSet ();                             /**< constructor */
-            ~SynapseSet ();                             /**< destructor */
+            SynapseSet ()                             /**< constructor */
+            {
+                /*  Default values for constants */
+                mIsPlastic = false;
+                mEta = 0;
+                mIdentifier = std::string("SynapseSet");
+            }
+
+            ~SynapseSet () {}                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
             /**
@@ -91,7 +101,7 @@ namespace Bionav {
              *
              * @return None
              */
-            void UpdateWeight(PreSynapticFiringRateType preSynapticFiringRate, PostSynapticFiringRateType postSynapticFiringRate) =0;
+            virtual void UpdateWeight(PreSynapticFiringRateType preSynapticFiringRate, PostSynapticFiringRateType postSynapticFiringRate) =0;
 
 
             /**
@@ -101,7 +111,16 @@ namespace Bionav {
              *
              * @return void
              */
-            inline void SetPlastic ();
+            inline void SetPlastic ()
+            {
+                if (mIsPlastic == true) {
+                    ROS_DEBUG ("%s: Synapse is already modifiable!", mIdentifier.c_str ());
+                }
+                else {
+                    mIsPlastic = true;
+                    ROS_DEBUG ("%s: Synapse set as modifiable!", mIdentifier.c_str ());
+                }
+            }
 
             /**
              * @brief Disable plasticity of synaptic weights
@@ -110,7 +129,16 @@ namespace Bionav {
              *
              * @return void
              */
-            inline void SetStiff ();
+            inline void SetStiff ()
+            {
+                if (mIsPlastic == false) {
+                    ROS_DEBUG ("%s: Synapse is already stiff!", mIdentifier.c_str ());
+                }
+                else {
+                    mIsPlastic = false;
+                    ROS_DEBUG ("%s: Synapse set as stiff!", mIdentifier.c_str ());
+                }
+            }
 
             /**
              * @brief Set the identifier for this synapse set
@@ -118,7 +146,16 @@ namespace Bionav {
              * @param identifier
              *
              * @return void */
-            inline void SetIdentifier (std::string identifier);
+            inline void SetIdentifier (std::string identifier)
+            {
+                if(mIdentifier != std::string ("SynapseSet")) {
+                    ROS_DEBUG ("%s: Identifier already set. Unable to comply!", mIdentifier.c_str ());
+                }
+                else {
+                    mIdentifier = identifier;
+                    ROS_DEBUG("%s: New identifier set.", mIdentifier.c_str ());
+                }
+            }
 
             /**
              * @brief Set the dimensions of the synapse set
@@ -132,12 +169,16 @@ namespace Bionav {
             {
                 mDimensionX = dimensionX;
                 mDimensionY = dimensionY;
-            };
+
+                ROS_DEBUG("%s: Dimensions set to %Lf x %Lf", mIdentifier.c_str (), mDimensionX, mDimensionY);
+                return ;
+            }
         protected:
             /* ====================  METHODS       ======================================= */
 
             /* ====================  DATA MEMBERS  ======================================= */
             WeightMatrixType mWeightMatrix;
+            WeightMatrixType mDeltaW;
             long double mEta;                   /**< @f$ \eta @f$ */
             long double mLearningRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */

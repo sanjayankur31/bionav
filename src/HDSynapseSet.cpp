@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "HDSynapseSet.hpp"
 
 
 /*
@@ -102,16 +103,16 @@ HDSynapseSet::UpdateWeight (Eigen::Matrix<long double, Eigen::Dynamic, 1> preSyn
 {
     if (mIsPlastic == true)
     {
-        WeightMatrixType delta_w;
-        delta_w.resize(mDimensionX, mDimensionY);
-        delta_w = mLearningRate * preSynapticFiringRate * postSynapticFiringRate.transpose ();
+        mDeltaW.resize(mDimensionX, mDimensionY);
+        mDeltaW = Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+        mDeltaW = mLearningRate * preSynapticFiringRate * postSynapticFiringRate.transpose ();
 
-        mWeightMatrix += delta_w;
-        ROS_DEBUG("%s: Synaptic weight updated.", mIdentifier);
+        mWeightMatrix += mDeltaW;
+        ROS_DEBUG("%s: Synaptic weight updated.", mIdentifier.c_str ());
     }
     else 
     {
-        ROS_DEBUG("%s: Unable to modify stiff synapses!", mIdentifier);
+        ROS_DEBUG("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
     }
     return ;
 }		/* -----  end of method HDSynapseSet::UpdateWeight  ----- */

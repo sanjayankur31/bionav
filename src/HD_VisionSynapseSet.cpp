@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  VisionCells.cpp
+ *       Filename:  HD_VisionSynapseSet.cpp
  *
- *    Description:  Definition file for VisionCells
+ *    Description:  Definition file for HD_VisionSynapseSet
  *
  *        Version:  1.0
- *        Created:  19/09/13 11:47:28
+ *        Created:  10/10/13 11:51:17
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -17,54 +17,55 @@
  */
 
 
-#include "VisionCells.hpp"
+
+#include "HD_VisionSynapseSet.hpp"
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
- *      Method:  VisionCells
+ *       Class:  HD_VisionSynapseSet
+ *      Method:  HD_VisionSynapseSet
  * Description:  constructor
  *--------------------------------------------------------------------------------------
  */
-VisionCells::VisionCells ()
+HD_VisionSynapseSet::HD_VisionSynapseSet ()
 {
-}  /* -----  end of method VisionCells::VisionCells  (constructor)  ----- */
+}  /* -----  end of method HD_VisionSynapseSet::HD_VisionSynapseSet  (constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
- *      Method:  VisionCells
+ *       Class:  HD_VisionSynapseSet
+ *      Method:  HD_VisionSynapseSet
  * Description:  copy constructor
  *--------------------------------------------------------------------------------------
  */
-VisionCells::VisionCells ( const VisionCells &other )
+HD_VisionSynapseSet::HD_VisionSynapseSet ( const HD_VisionSynapseSet &other )
 {
-}  /* -----  end of method VisionCells::VisionCells  (copy constructor)  ----- */
+}  /* -----  end of method HD_VisionSynapseSet::HD_VisionSynapseSet  (copy constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
- *      Method:  ~VisionCells
+ *       Class:  HD_VisionSynapseSet
+ *      Method:  ~HD_VisionSynapseSet
  * Description:  destructor
  *--------------------------------------------------------------------------------------
  */
-VisionCells::~VisionCells ()
+HD_VisionSynapseSet::~HD_VisionSynapseSet ()
 {
-}  /* -----  end of method VisionCells::~VisionCells  (destructor)  ----- */
+}  /* -----  end of method HD_VisionSynapseSet::~HD_VisionSynapseSet  (destructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  VisionCells
+ *       Class:  HD_VisionSynapseSet
  *      Method:  operator =
  * Description:  assignment operator
  *--------------------------------------------------------------------------------------
  */
-    VisionCells&
-VisionCells::operator = ( const VisionCells &other )
+    HD_VisionSynapseSet&
+HD_VisionSynapseSet::operator = ( const HD_VisionSynapseSet &other )
 {
     if ( this != &other ) {
     }
     return *this;
-}  /* -----  end of method VisionCells::operator =  (assignment operator)  ----- */
+}  /* -----  end of method HD_VisionSynapseSet::operator =  (assignment operator)  ----- */
 

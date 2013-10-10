@@ -19,6 +19,7 @@
 #ifndef  HDSynapseSet_INC
 #define  HDSynapseSet_INC
 
+#include <Eigen/Dense>
 #include "SynapseSet.hpp"
 
 /*
@@ -45,6 +46,7 @@ class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double, Eigen::
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
+        virtual void UpdateWeight (Eigen::Matrix<long double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<long double, Eigen::Dynamic, 1> postSynapticFiringRate );
 
         /* ====================  OPERATORS     ======================================= */
 

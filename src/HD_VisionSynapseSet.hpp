@@ -21,6 +21,7 @@
 
 
 #include "SynapseSet.hpp"
+#include <Eigen/Dense>
 /*
  * =====================================================================================
  *        Class:  HD_VisionSynapseSet
@@ -33,8 +34,10 @@
  * @brief This class represents the synapses between the visual cells and head
  * direction cell system
  * 
+ * @todo This is under WIP. The template arguments are only written in to let
+ * it compile properly
  */
-class HD_VisionSynapseSet: public Bionav::SynapseSet<>
+class HD_VisionSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<long double, Eigen::Dynamic, 1>,Eigen::Matrix<long double, Eigen::Dynamic, 1> >
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -45,6 +48,7 @@ class HD_VisionSynapseSet: public Bionav::SynapseSet<>
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
+        virtual void UpdateWeight (Eigen::Matrix<long double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<long double, Eigen::Dynamic, 1> postSynapticFiringRate ) { }
 
         /* ====================  OPERATORS     ======================================= */
 

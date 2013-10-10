@@ -21,6 +21,6 @@
 #define  main_INC
 
 #include "ros/ros.h"
-#include "Bionav.h"
+#include "Bionavigator.hpp"
 
 #endif   /* ----- #ifndef main_INC  ----- */

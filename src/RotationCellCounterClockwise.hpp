@@ -41,12 +41,14 @@ class RotationCellCounterClockwise: public Bionav::NeuronSet<long double>
     public:
         /* ====================  LIFECYCLE     ======================================= */
         RotationCellCounterClockwise ();                             /* constructor      */
-        RotationCellCounterClockwise ( const RotationCellCounterClockwise &other );   /* copy constructor */
+        RotationCellCounterClockwise ( const RotationCellCounterClockwise &other );    /* copy constructor */
         ~RotationCellCounterClockwise ();                            /* destructor       */
 
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
+        virtual void UpdateFiringRate () { }
+        virtual void UpdateFiringRateTrace () { }
 
         /* ====================  OPERATORS     ======================================= */
 
