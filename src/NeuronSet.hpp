@@ -99,7 +99,7 @@ namespace Bionav {
              *
              * @return mDimensionY Y dimension
              */
-            long double DimensionY () { return mDimensionY; }
+            double DimensionY () { return mDimensionY; }
 
             /**
              * @brief return X dimension
@@ -108,7 +108,7 @@ namespace Bionav {
              *
              * @return mDimensionX X dimension
              */
-            long double DimensionX () { return mDimensionX; }
+            double DimensionX () { return mDimensionX; }
 
 
             /* ====================  MUTATORS      ======================================= */
@@ -141,12 +141,12 @@ namespace Bionav {
              *
              * @return void
              */
-            inline void SetDimension (long double dimensionX, long double dimensionY)
+            inline void SetDimension (double dimensionX, double dimensionY)
             {
                 mDimensionX = dimensionX;
                 mDimensionY = dimensionY;
 
-                ROS_DEBUG("%s: Dimensions set to %Lf x %Lf", mIdentifier.c_str (), mDimensionX, mDimensionY);
+                ROS_DEBUG("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
                 return ;
             }
 
@@ -238,8 +238,8 @@ namespace Bionav {
             FiringRateType mActivation;         /**< Activation values of neurons */
             FiringRateType mFiringRate;         /**< Firing rates of neurons */
             FiringRateType mFiringRateTrace;    /**< Trace firing rates of neurons */
-            long double mDimensionX;            /**< X dimension */
-            long double mDimensionY;            /**< Y dimension */
+            double mDimensionX;            /**< X dimension */
+            double mDimensionY;            /**< Y dimension */
             bool mHasTrace;                     /**< Does this provide a trace matrix?  */
 
         private:

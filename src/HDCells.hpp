@@ -38,7 +38,7 @@
  * @todo Verify forumule implementations
  */
 
-class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynamic, 1> >
+class HDCells: public Bionav::NeuronSet<Eigen::Matrix<double, Eigen::Dynamic, 1> >
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -89,14 +89,14 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
          *
          */
         void UpdateActivation (
-                long double clockwiseRotationCellFiringRate,
-                long double counterclockwiseRotationCellFiringRate,
-                //Eigen::Matrix<long double, Eigen::Dynamic, 1> visionCellFiringRate,
-                long double,
-                Eigen::Matrix<long double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
-                Eigen::Matrix<long double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
-                Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
-                Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
+                double clockwiseRotationCellFiringRate,
+                double counterclockwiseRotationCellFiringRate,
+                //Eigen::Matrix<double, Eigen::Dynamic, 1> visionCellFiringRate,
+                double,
+                Eigen::Matrix<double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
                 );
 
         /**
@@ -106,7 +106,7 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
          *
          * @return Current head direction of network
          */
-        long double CurrentHeadDirection ();
+        double CurrentHeadDirection ();
 
         /**
          * @brief Update the "directional range" of the system
@@ -121,7 +121,7 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
          */
         void UpdateDirectionalRange () {
             mDirectionalRange = 360/mDimensionX;
-            ROS_DEBUG("%s: directional range updated to: %Lf", mIdentifier.c_str (), mDirectionalRange);
+            ROS_DEBUG("%s: directional range updated to: %f", mIdentifier.c_str (), mDirectionalRange);
         }
 
         virtual void UpdateFiringRate ();
@@ -140,19 +140,19 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<long double, Eigen::Dynami
         /* ====================  METHODS       ======================================= */
 
         /* ====================  DATA MEMBERS  ======================================= */
-        long double mDeltaT;                    /**< For integration step */
-        long double mTau;                       /**< Time constant */
-        long double mAlpha;                     /**< Alpha in firing rate equation */
-        long double mBeta;                      /**< Beta in firing rate equation */
-        long double mDirectionalRange;          /**< Directional range of a cell */
+        double mDeltaT;                    /**< For integration step */
+        double mTau;                       /**< Time constant */
+        double mAlpha;                     /**< Alpha in firing rate equation */
+        double mBeta;                      /**< Beta in firing rate equation */
+        double mDirectionalRange;          /**< Directional range of a cell */
 
         /*  Handle these. Put them in their classes */
-        long double mPhi0;
-        long double mC_HD;
-        long double mInhibitionRate;
-        long double mPhi1;
-        long double mC_HD_ROT;
-        long double mPhi2;
+        double mPhi0;
+        double mC_HD;
+        double mInhibitionRate;
+        double mPhi1;
+        double mC_HD_ROT;
+        double mPhi2;
 
 }; /* -----  end of class HDCells  ----- */
 

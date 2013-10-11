@@ -86,7 +86,7 @@ HDSynapseSet::operator = ( const HDSynapseSet &other )
 HDSynapseSet::Init (  )
 {
     mWeightMatrix.resize(mDimensionX, mDimensionY);
-    mWeightMatrix = Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+    mWeightMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 }		/* -----  end of method HDSynapseSet::Init  ----- */
 
 
@@ -99,12 +99,12 @@ HDSynapseSet::Init (  )
  *--------------------------------------------------------------------------------------
  */
     void
-HDSynapseSet::UpdateWeight (Eigen::Matrix<long double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<long double, Eigen::Dynamic, 1> postSynapticFiringRate )
+HDSynapseSet::UpdateWeight (Eigen::Matrix<double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<double, Eigen::Dynamic, 1> postSynapticFiringRate )
 {
     if (mIsPlastic == true)
     {
         mDeltaW.resize(mDimensionX, mDimensionY);
-        mDeltaW = Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+        mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
         mDeltaW = mLearningRate * preSynapticFiringRate * postSynapticFiringRate.transpose ();
 
         mWeightMatrix += mDeltaW;

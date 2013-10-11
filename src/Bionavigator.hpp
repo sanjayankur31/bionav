@@ -28,6 +28,7 @@
 #include "HD_RotationSynapseSet.hpp"
 #include "HDSynapseSet.hpp"
 #include "ros/ros.h"
+#include "ros/console.h"
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/Float64.h"
 
@@ -149,8 +150,8 @@ class Bionavigator
 
         bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
         bool mIsCalibrated;                     /**< Is the network calibrated */
-        long double mCount;                     /**< Keep a count of number of IMU messages we've processed */
-        long double mHeadDirection;             /**< The head direction */
+        double mCount;                     /**< Keep a count of number of IMU messages we've processed */
+        double mHeadDirection;             /**< The head direction */
 
 }; /* -----  end of class Bionavigator  ----- */
 

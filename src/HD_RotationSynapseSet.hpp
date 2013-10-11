@@ -35,7 +35,7 @@
  * @brief Class representing synapses between head cells and the rotation cells
  * 
  */
-class HD_RotationSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double, Eigen::Dynamic, 1>, long double, Eigen::Matrix<long double, Eigen::Dynamic, 1> >
+class HD_RotationSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<double, Eigen::Dynamic, 1>, double, Eigen::Matrix<double, Eigen::Dynamic, 1> >
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -46,7 +46,7 @@ class HD_RotationSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
-        virtual void UpdateWeight(long double preSynapticFiringRate, Eigen::Matrix<long double, Eigen::Dynamic, 1> postSynapticFiringRate) { }
+        virtual void UpdateWeight(double preSynapticFiringRate, Eigen::Matrix<double, Eigen::Dynamic, 1> postSynapticFiringRate) { }
         void Init ();
 
         /* ====================  OPERATORS     ======================================= */

@@ -36,7 +36,7 @@
  * implementation is out of the scope for this project currently
  * 
  */
-class VisionCells: public Bionav::NeuronSet <long double>
+class VisionCells: public Bionav::NeuronSet <double>
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */

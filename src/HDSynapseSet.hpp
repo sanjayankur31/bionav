@@ -35,7 +35,7 @@
  * set ensemble
  * 
  */
-class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<long double, Eigen::Dynamic, 1>,Eigen::Matrix<long double, Eigen::Dynamic, 1> >
+class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<double, Eigen::Dynamic, 1>,Eigen::Matrix<double, Eigen::Dynamic, 1> >
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -46,7 +46,7 @@ class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<long double, Eigen::
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
-        virtual void UpdateWeight (Eigen::Matrix<long double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<long double, Eigen::Dynamic, 1> postSynapticFiringRate );
+        virtual void UpdateWeight (Eigen::Matrix<double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<double, Eigen::Dynamic, 1> postSynapticFiringRate );
 
         /* ====================  OPERATORS     ======================================= */
 

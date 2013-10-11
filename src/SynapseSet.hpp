@@ -165,12 +165,12 @@ namespace Bionav {
              *
              * @return void
              */
-            void SetDimension (long double dimensionX, long double dimensionY)
+            void SetDimension (double dimensionX, double dimensionY)
             {
                 mDimensionX = dimensionX;
                 mDimensionY = dimensionY;
 
-                ROS_DEBUG("%s: Dimensions set to %Lf x %Lf", mIdentifier.c_str (), mDimensionX, mDimensionY);
+                ROS_DEBUG("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
                 return ;
             }
         protected:
@@ -179,12 +179,12 @@ namespace Bionav {
             /* ====================  DATA MEMBERS  ======================================= */
             WeightMatrixType mWeightMatrix;
             WeightMatrixType mDeltaW;
-            long double mEta;                   /**< @f$ \eta @f$ */
-            long double mLearningRate;
+            double mEta;                   /**< @f$ \eta @f$ */
+            double mLearningRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
-            long double mDimensionX;            /**< X dimension */
-            long double mDimensionY;            /**< Y dimension */
+            double mDimensionX;            /**< X dimension */
+            double mDimensionY;            /**< Y dimension */
 
         private:
             /* ====================  METHODS       ======================================= */

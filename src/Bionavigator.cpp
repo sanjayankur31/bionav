@@ -141,10 +141,12 @@ Bionavigator::Init (  )
      */
     mSubscriber = mNodeHandle.subscribe("torso_lift_imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
     ROS_ASSERT(mSubscriber);
+    ROS_DEBUG("Subscribed to torso_lift_imu/data");
 
-    /*  Can I use a long double? */
+    /*  Can I use a double? */
     mHeadDirectionPublisher = mNodeHandle.advertise<std_msgs::Float64>("head_direction",10);
     ROS_ASSERT(mHeadDirectionPublisher);
+    ROS_DEBUG("Publishing to /head_direction");
 
 
 }		/* -----  end of method Bionavigator::Init  ----- */
@@ -182,18 +184,24 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
     /*  Make sure initial direction was set before
      *  we begin processing inputs
      */
-    if( mIsInitialDirectionSet == false)
-    {
-        SetInitialDirection ();
-    }
-
+/*     if( mIsInitialDirectionSet == false)
+ *     {
+ *         SetInitialDirection ();
+ *     }
+ * 
+ */
     /*
      * Calculate the new head direction
      */
-    HeadDirection ();
+/*     HeadDirection ();
+ */
 
 /*     mHeadDirectionPublisher.publish(mHeadDirection);
  */
+    std_msgs::Float64 msg;
+    msg.data = 0.002;
+    mHeadDirectionPublisher.publish(msg);
+
 
 
 

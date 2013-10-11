@@ -88,8 +88,8 @@ HDCells::Init ( )
     mFiringRate.resize(mDimensionX,mDimensionY);
     mFiringRateTrace.resize(mDimensionX,mDimensionY);
     
-    mFiringRateTrace = Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic, 1>::Zero (mDimensionX, mDimensionY);
-    mFiringRate = Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic, 1>::Zero (mDimensionX, mDimensionY);
+    mFiringRateTrace = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, 1>::Zero (mDimensionX, mDimensionY);
+    mFiringRate = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, 1>::Zero (mDimensionX, mDimensionY);
 }		/* -----  end of method HDCells::Init  ----- */
 
 
@@ -103,21 +103,21 @@ HDCells::Init ( )
  */
     void
 HDCells::UpdateActivation (
-        long double clockwiseRotationCellFiringRate,
-        long double counterclockwiseRotationCellFiringRate,
-        //Eigen::Matrix<long double, Eigen::Dynamic, 1> visionCellFiringRate,
-        long double visionCellFiringRate,
-        Eigen::Matrix<long double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
-        Eigen::Matrix<long double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
-        Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
-        Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
+        double clockwiseRotationCellFiringRate,
+        double counterclockwiseRotationCellFiringRate,
+        //Eigen::Matrix<double, Eigen::Dynamic, 1> visionCellFiringRate,
+        double visionCellFiringRate,
+        Eigen::Matrix<double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
         )
 {
     /*  Because you can't use and modify a matrix simultaneously */
-    Eigen::Matrix<long double, Eigen::Dynamic, 1> temp_matrix;
+    Eigen::Matrix<double, Eigen::Dynamic, 1> temp_matrix;
     temp_matrix.resize(mDimensionX,1);
 
-    for (long double i = 0; i < 1; i += mDeltaT ) {
+    for (double i = 0; i < 1; i += mDeltaT ) {
 
         temp_matrix = (((1.0 - mDeltaT/mTau)*mActivation) + ((mDeltaT/mTau)*(mPhi0/mC_HD)*((headCellSynapses.array() - mInhibitionRate).matrix () * mFiringRate)) + (mDeltaT/mTau)*(mPhi1/mC_HD_ROT)*(((clockwiseRotationCellSynapses * mFiringRate).array() * clockwiseRotationCellFiringRate).matrix () + (((counterClockwiseRotationCellSynapses * mFiringRate).array() * counterclockwiseRotationCellFiringRate).matrix ())) + ((mDeltaT/mTau) * (mPhi2/mC_HD) * (visionCellSynapses.array () * mFiringRate.array ()) * visionCellFiringRate).matrix());
         mActivation = temp_matrix;
@@ -158,10 +158,10 @@ HDCells::UpdateFiringRateTrace ( )
  * Description:  
  *--------------------------------------------------------------------------------------
  */
-    long double
+    double
 HDCells::CurrentHeadDirection ( )
 {
-    long double max_value = mFiringRate.maxCoeff ();
+    double max_value = mFiringRate.maxCoeff ();
 
     /**
      * @note Is there a better way of calculating this? Without iterating
