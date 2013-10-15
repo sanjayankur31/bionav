@@ -29,6 +29,7 @@
  */
 VisionCells::VisionCells ()
 {
+    mForceFiring = false;
 }  /* -----  end of method VisionCells::VisionCells  (constructor)  ----- */
 
 /*
@@ -67,4 +68,6 @@ VisionCells::operator = ( const VisionCells &other )
     }
     return *this;
 }  /* -----  end of method VisionCells::operator =  (assignment operator)  ----- */
+
+
 

@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include "ros/ros.h"
+#include <Eigen/Dense>
 
 namespace Bionav {
 
@@ -52,7 +53,6 @@ namespace Bionav {
      * http://stackoverflow.com/questions/8752837/undefined-reference-to-template-class-constructor
      *
      */
-    template <class FiringRateType>
     class NeuronSet
     {
         public:
@@ -71,7 +71,7 @@ namespace Bionav {
 
             }
 
-            ~NeuronSet () { }                             /**< destructor */
+            ~NeuronSet () { ;}                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
             /**
@@ -156,18 +156,18 @@ namespace Bionav {
              *
              * @param None
              *
-             * @return FiringRateType firing rate matrix
+             * @return Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> firing rate matrix
             */
-            inline FiringRateType FiringRate () { return mFiringRate ;}
+            inline Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FiringRate () { return mFiringRate ;}
 
             /**
              * @brief Return firing rate trace matrix
              *
              * @param None
              *
-             * @return FiringRateType the trace firing rate
+             * @return Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> the trace firing rate
              * */
-            FiringRateType FiringRateTrace() { return mFiringRateTrace; }
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FiringRateTrace() { return mFiringRateTrace; }
 
             /**
              * @brief Calculate new firing rate matrix
@@ -229,18 +229,64 @@ namespace Bionav {
                 return ;
             }
 
+            /**
+             * @brief Initialize the matrices
+             *
+             * @param None
+             *
+             * @return None
+             */
+            void Init ( )
+            {
+                mFiringRate.resize(mDimensionX,mDimensionY);
+                mFiringRateTrace.resize(mDimensionX,mDimensionY);
+                
+                mFiringRateTrace = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mDimensionX, mDimensionY);
+                mFiringRate = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mDimensionX, mDimensionY);
+            }
+
+            /**
+             * @brief Enable maximum firing for all cells
+             *
+             * Needed in training
+             *
+             * @param None
+             *
+             * @return None
+             */
+            void EnableForceFire ( )
+            {
+                Init ();
+                mFiringRate.array() += 1;
+                mFiringRateTrace.array() += 1;
+                mForceFiring = true;
+            }
+
+            /**
+             * @brief Disable all firing. Basically, re-init the cells
+             *
+             * @param None
+             *
+             * @return None
+             */
+            void DisableForceFire ( )
+            {
+                Init ();
+                mForceFiring = false;
+            }
         protected:
             /* ====================  METHODS       ======================================= */
 
 
             /* ====================  DATA MEMBERS  ======================================= */
             std::string mIdentifier;            /**< Identifier of this neuron set */
-            FiringRateType mActivation;         /**< Activation values of neurons */
-            FiringRateType mFiringRate;         /**< Firing rates of neurons */
-            FiringRateType mFiringRateTrace;    /**< Trace firing rates of neurons */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mActivation;         /**< Activation values of neurons */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mFiringRate;         /**< Firing rates of neurons */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mFiringRateTrace;    /**< Trace firing rates of neurons */
             double mDimensionX;            /**< X dimension */
             double mDimensionY;            /**< Y dimension */
             bool mHasTrace;                     /**< Does this provide a trace matrix?  */
+            bool mForceFiring;
 
         private:
             /* ====================  METHODS       ======================================= */

@@ -67,4 +67,3 @@ RotationCellCounterClockwise::operator = ( const RotationCellCounterClockwise &o
     return *this;
 }  /* -----  end of method RotationCellCounterClockwise::operator =  (assignment operator)  ----- */
 
-

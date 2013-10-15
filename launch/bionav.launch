@@ -1,0 +1,3 @@
+<launch>
+    <node name="bionav" pkg="bionav" type="bionav" respawn="false" output="screen" launch-prefix="gdb -ex run --args" />
+</launch>

@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include "ros/ros.h"
+#include <Eigen/Dense>
 
 namespace Bionav {
 
@@ -44,7 +45,6 @@ namespace Bionav {
      * This class provides the basic framework and enforces the definition of a
      * set of mandator methods.
      */
-    template<class WeightMatrixType, class PreSynapticFiringRateType, class PostSynapticFiringRateType>
     class SynapseSet
     {
         public:
@@ -57,7 +57,7 @@ namespace Bionav {
                 mIdentifier = std::string("SynapseSet");
             }
 
-            ~SynapseSet () {}                             /**< destructor */
+            ~SynapseSet () { ;}                             /**< destructor */
 
             /* ====================  ACCESSORS     ======================================= */
             /**
@@ -85,7 +85,7 @@ namespace Bionav {
              *
              * @return mWeightMatrix The weight matrix of this synapse set
              */
-            inline WeightMatrixType WeightMatrix () { return mWeightMatrix; }
+            inline Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> WeightMatrix () { return mWeightMatrix; }
             /* ====================  MUTATORS      ======================================= */
 
 
@@ -101,7 +101,49 @@ namespace Bionav {
              *
              * @return None
              */
-            virtual void UpdateWeight(PreSynapticFiringRateType preSynapticFiringRate, PostSynapticFiringRateType postSynapticFiringRate) =0;
+            void UpdateWeight(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preSynapticFiringRate, Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> postSynapticFiringRate)
+            {
+                if (mIsPlastic == true)
+                {
+                    mDeltaW.resize(mDimensionX, mDimensionY);
+                    mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+                    mDeltaW = mLearningRate * preSynapticFiringRate * postSynapticFiringRate;
+
+                    mWeightMatrix += mDeltaW;
+                    ROS_DEBUG("%s: Synaptic weight updated.", mIdentifier.c_str ());
+                }
+                else 
+                {
+                    ROS_DEBUG("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
+                }
+            }
+
+            /**
+             * @brief add to the current weight matrix
+             *
+             * Comes in handy during calibration, and when hebbian learning occurs
+             *
+             * @param addition Matrix term to be added to current synaptic
+             * weight
+             *
+             * @return None
+             */
+            inline void AddToWeight(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> addition)
+            {
+                mWeightMatrix += addition;
+            }
+
+            /**
+             * @returns maximum value of synaptic weight
+             *
+             * @param None
+             *
+             * @return maximum value of synaptic weight
+             */
+            double Max ()
+            {
+                return mWeightMatrix.maxCoeff ();
+            }
 
 
             /**
@@ -173,12 +215,26 @@ namespace Bionav {
                 ROS_DEBUG("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
                 return ;
             }
+
+            /**
+             * @brief Initialize matrices
+             *
+             * @param None
+             *
+             * @return void
+             */
+            void Init ( )
+            {
+                mWeightMatrix.resize(mDimensionX, mDimensionY);
+                mWeightMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mDimensionX, mDimensionY);
+            }
+
         protected:
             /* ====================  METHODS       ======================================= */
 
             /* ====================  DATA MEMBERS  ======================================= */
-            WeightMatrixType mWeightMatrix;
-            WeightMatrixType mDeltaW;
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mWeightMatrix;
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mDeltaW;
             double mEta;                   /**< @f$ \eta @f$ */
             double mLearningRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */

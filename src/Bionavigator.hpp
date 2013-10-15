@@ -152,6 +152,7 @@ class Bionavigator
         bool mIsCalibrated;                     /**< Is the network calibrated */
         double mCount;                     /**< Keep a count of number of IMU messages we've processed */
         double mHeadDirection;             /**< The head direction */
+        double mInhibitionRate;
 
 }; /* -----  end of class Bionavigator  ----- */
 

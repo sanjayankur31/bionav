@@ -74,26 +74,6 @@ HDCells::operator = ( const HDCells &other )
 }  /* -----  end of method HDCells::operator =  (assignment operator)  ----- */
 
 
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: Init
- * Description:  Initialize matrices after dimensions have been set
- *--------------------------------------------------------------------------------------
- */
-    void
-HDCells::Init ( )
-{
-    mFiringRate.resize(mDimensionX,mDimensionY);
-    mFiringRateTrace.resize(mDimensionX,mDimensionY);
-    
-    mFiringRateTrace = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, 1>::Zero (mDimensionX, mDimensionY);
-    mFiringRate = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, 1>::Zero (mDimensionX, mDimensionY);
-}		/* -----  end of method HDCells::Init  ----- */
-
-
-
 /*
  *--------------------------------------------------------------------------------------
  *       Class:  HDCells
@@ -103,23 +83,25 @@ HDCells::Init ( )
  */
     void
 HDCells::UpdateActivation (
-        double clockwiseRotationCellFiringRate,
-        double counterclockwiseRotationCellFiringRate,
-        //Eigen::Matrix<double, Eigen::Dynamic, 1> visionCellFiringRate,
-        double visionCellFiringRate,
-        Eigen::Matrix<double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
-        Eigen::Matrix<double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterclockwiseRotationCellFiringRate,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
         )
 {
     /*  Because you can't use and modify a matrix simultaneously */
-    Eigen::Matrix<double, Eigen::Dynamic, 1> temp_matrix;
-    temp_matrix.resize(mDimensionX,1);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix;
+    temp_matrix.resize(mDimensionX,mDimensionY);
+    temp.matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
     for (double i = 0; i < 1; i += mDeltaT ) {
 
-        temp_matrix = (((1.0 - mDeltaT/mTau)*mActivation) + ((mDeltaT/mTau)*(mPhi0/mC_HD)*((headCellSynapses.array() - mInhibitionRate).matrix () * mFiringRate)) + (mDeltaT/mTau)*(mPhi1/mC_HD_ROT)*(((clockwiseRotationCellSynapses * mFiringRate).array() * clockwiseRotationCellFiringRate).matrix () + (((counterClockwiseRotationCellSynapses * mFiringRate).array() * counterclockwiseRotationCellFiringRate).matrix ())) + ((mDeltaT/mTau) * (mPhi2/mC_HD) * (visionCellSynapses.array () * mFiringRate.array ()) * visionCellFiringRate).matrix());
+/*         temp_matrix = (((1.0 - mDeltaT/mTau)*mActivation) + ((mDeltaT/mTau)*(mPhi0/mC_HD)*((headCellSynapses.array() - mInhibitionRate).matrix () * mFiringRate)) + (mDeltaT/mTau)*(mPhi1/mC_HD_ROT)*(((clockwiseRotationCellSynapses * mFiringRate).array() * clockwiseRotationCellFiringRate).matrix () + (((counterClockwiseRotationCellSynapses * mFiringRate).array() * counterclockwiseRotationCellFiringRate).matrix ())) + ((mDeltaT/mTau) * (mPhi2/mC_HD) * (visionCellSynapses.array () * mFiringRate.array ()) * visionCellFiringRate).matrix());
+ */
+
         mActivation = temp_matrix;
     }
 }		/* -----  end of method HDCells::UpdateActivations  ----- */
@@ -142,6 +124,21 @@ HDCells::UpdateFiringRate ( )
 /*
  *--------------------------------------------------------------------------------------
  *       Class:  HDCells
+ *      Method:  HDCells :: UpdateFiringRate
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS )
+{
+        mFiringRate= ((((deltaS.array ().abs2 () +1)/(2.0*mSigmaHD * mSigmaHD))* -1.0).exp ()).matrix (); /* r^(HD)_i -> equation 4 */
+    return ;
+}		/* -----  end of method HDCells::UpdateFiringRate  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  HDCells
  *      Method:  HDCells :: UpdateFiringRateTrace
  * Description:  
  *--------------------------------------------------------------------------------------
@@ -149,6 +146,7 @@ HDCells::UpdateFiringRate ( )
     void
 HDCells::UpdateFiringRateTrace ( )
 {
+        mFiringRateTrace = (1 - mEta) * mFiringRate+ mEta * mFiringRateTrace; /* rTrace^(HD)_i -> equation 7 */
 }		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
 
 /*

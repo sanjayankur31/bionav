@@ -36,7 +36,7 @@
  * Use an instance of this class for counter clockwise rotation cells
  * 
  */
-class RotationCellCounterClockwise: public Bionav::NeuronSet<double>
+class RotationCellCounterClockwise: public Bionav::NeuronSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */

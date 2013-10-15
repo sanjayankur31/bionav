@@ -32,6 +32,7 @@ main ( int argc, char **argv )
 
     Bionavigator* bionavigator = new Bionavigator ();
     bionavigator->Init ();
+    bionavigator->Calibrate ();
 
     ros::spin();
 

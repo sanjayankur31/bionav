@@ -162,9 +162,122 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
+    ROS_DEBUG("Calibrating system");
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_w;
+
+    delta_s.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_s = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
+
+    /*  We set the preferred head directions uniformly */
+    preferred_directions.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
+    preferred_directions = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
+    for (double i = (1.0* 360.0/mpHDCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpHDCells->DimensionX ()), j++)
+    {
+        preferred_directions (j, 0) = i;
+    }
+    
+
+    /*  Anti clockwise */
+    mpRotationCellCounterClockwise->EnableForceFire ();
+    mpRotationCellClockwise->DisableForceFire ();
+    for (int i = 1; i <= mpHDCells->DimensionX (); i++)
+    {
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x;
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> threesixty_delta_x;
+        double preferred_direction_for_iteration = preferred_directions(i -1,0);
+
+        delta_x.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
+        threesixty_delta_x.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
+
+        delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()); /* |x_i - x| */
+        threesixty_delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()); /* 360 - |x_i - x| */
+
+        delta_x = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+        threesixty_delta_x = (360 - delta_x.array ());
+
+        delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
+
+        /*  For rotation cell connections only! */
+        mpHDCells->UpdateFiringRate(delta_s);
+        mpHDCells->UpdateFiringRateTrace ();
+
+        /*  Pass transposed etc matrices. The update weight will only do simple
+         *  multiplication. This is clearer */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace ().transpose () * mpRotationCellCounterClockwise->FiringRate ()));
+        //mpHD_RotationCellCounterClockwiseSynapseSet->AddToWeight(delta_w.array ());
+
+        /*  Not needed in this cycle. Save some computations, instead of it
+         *  multiplying be zero in the end */
+        //Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_w = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero ( mpHDCells->DimensionX (), mpHDCells->DimensionX () ); /* deltaW^(RC)_(ij) and delta_W^(ROT)_(ij) 1 and 2 separately */
+        //delta_w = mLearningRate * mpHDCells->mFiringRateMatrix * mpHDCells->mFiringRateTraceMatrix.transpose () * mRotationCellClockwise->FiringRate (); /* deltaW^(ROT)_(ij2) -> equation 11 */
+        //mHC_RCCounterClockwiseWeightMatrix += delta_w;
+    }
     /*
-     * AFTER CALIBRATION
+     * Clockwise
      */
+    mpRotationCellCounterClockwise->DisableForceFire ();
+    mpRotationCellClockwise->EnableForceFire ();
+    for (int i = 1; i <= mpHDCells->DimensionX (); i++)
+    {
+        Eigen::Matrix<double, Eigen::Dynamic, 1> delta_x;
+        Eigen::Matrix<double, Eigen::Dynamic, 1> threesixty_delta_x;
+        double preferred_direction_for_iteration = preferred_directions(i -1,0);
+
+        delta_x.resize(mpHDCells->DimensionX (), 1);
+        threesixty_delta_x.resize(mpHDCells->DimensionX (), 1);
+
+        delta_w.resize(mpHDCells->DimensionX (), mpHDCells->DimensionX ());
+        delta_w = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero ( mpHDCells->DimensionX (), mpHDCells->DimensionX () ); /* deltaW^(RC)_(ij) and delta_W^(ROT)_(ij) 1 and 2 separately */
+        delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), 1); /* |x_i - x| */
+        threesixty_delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), 1); /* 360 - |x_i - x| */
+
+        delta_x = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+        threesixty_delta_x = (360 - delta_x.array ());
+
+        delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
+
+        /*  For rotation cell connections only! */
+        mpHDCells->UpdateFiringRate(delta_s);
+        mpHDCells->UpdateFiringRateTrace ();
+
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace ().transpose () * mpRotationCellClockwise->FiringRate ()));
+
+        /*  Not needed in this cycle. Save some computations, instead of it
+         *  multiplying be zero in the end */
+        //Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_w = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero ( mpHDCells->DimensionX (), mpHDCells->DimensionX () ); /* deltaW^(RC)_(ij) and delta_W^(ROT)_(ij) 1 and 2 separately */
+        //delta_w = mLearningRate * mpHDCells->mFiringRateMatrix * mpHDCells->mFiringRateTraceMatrix.transpose () * mRotationCellClockwise->FiringRate (); /* deltaW^(ROT)_(ij2) -> equation 11 */
+        //mHC_RCCounterClockwiseWeightMatrix += delta_w;
+    }
+/*     mHDCannWeightMatrix *= (1.0/3.6);
+ */
+
+    /*  rescale  */
+/*     double temp = mHDCannWeightMatrix.maxCoeff ();
+ *     mHDCannWeightMatrix /= temp;
+ * 
+ *     temp = mHC_RCClockwiseWeightMatrix.maxCoeff ();
+ *     mHC_RCClockwiseWeightMatrix /= temp;
+ * 
+ *     temp = mHC_RCCounterClockwiseWeightMatrix.maxCoeff ();
+ *     mHC_RCCounterClockwiseWeightMatrix /= temp;
+ * 
+ *     mHC_RCClockwiseWeightMatrix *= 0.8;
+ *     mHC_RCCounterClockwiseWeightMatrix *= 0.8;
+ *     mHDCannWeightMatrix *= 0.8;
+ */
+
+    /*  Set the inhibition rate */
+    mInhibitionRate = (0.4 * mpHDSynapseSet->Max ());
+
+    /*  Disable all the force firing */
+    mpRotationCellClockwise->DisableForceFire ();
+    mpRotationCellCounterClockwise->DisableForceFire ();
 
     mIsCalibrated = true;
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
@@ -181,15 +294,24 @@ Bionavigator::Calibrate (  )
     void
 Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMessage)
 {
+
+    /*
+     * Make sure the system is calibrated
+     */
+    if( mIsCalibrated == false )
+    {
+        Calibrate ();
+    }
+
     /*  Make sure initial direction was set before
      *  we begin processing inputs
      */
-/*     if( mIsInitialDirectionSet == false)
- *     {
- *         SetInitialDirection ();
- *     }
- * 
- */
+    if( mIsInitialDirectionSet == false)
+    {
+        SetInitialDirection ();
+    }
+
+
     /*
      * Calculate the new head direction
      */
@@ -198,6 +320,10 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
 
 /*     mHeadDirectionPublisher.publish(mHeadDirection);
  */
+
+    /*
+     * You have to add the data to the struct before you publish it
+     */
     std_msgs::Float64 msg;
     msg.data = 0.002;
     mHeadDirectionPublisher.publish(msg);

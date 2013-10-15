@@ -69,16 +69,4 @@ HD_RotationSynapseSet::operator = ( const HD_RotationSynapseSet &other )
 }  /* -----  end of method HD_RotationSynapseSet::operator =  (assignment operator)  ----- */
 
 
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  HD_RotationSynapseSet
- *      Method:  HD_RotationSynapseSet :: Init
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-HD_RotationSynapseSet::Init ( )
-{
-    return ;
-}		/* -----  end of method HD_RotationSynapseSet::Init  ----- */
 

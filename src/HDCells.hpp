@@ -38,7 +38,7 @@
  * @todo Verify forumule implementations
  */
 
-class HDCells: public Bionav::NeuronSet<Eigen::Matrix<double, Eigen::Dynamic, 1> >
+class HDCells: public Bionav::NeuronSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -49,20 +49,6 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<double, Eigen::Dynamic, 1>
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
-        /**
-         * @brief Initialize the matrices.
-         *
-         * The constructor sets a default dimension set. One can modify it and
-         * then call Init to resize and initialize the matrices accordingly
-         *
-         * This assumes that you've set your dimensions. It does no checks at
-         * all.
-         *
-         * @param None
-         *
-         * @return None
-         */
-        void Init ();
 
         /**
          * @brief Update the activation value at each step. 
@@ -89,12 +75,11 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<double, Eigen::Dynamic, 1>
          *
          */
         void UpdateActivation (
-                double clockwiseRotationCellFiringRate,
-                double counterclockwiseRotationCellFiringRate,
-                //Eigen::Matrix<double, Eigen::Dynamic, 1> visionCellFiringRate,
-                double,
-                Eigen::Matrix<double, Eigen::Dynamic, 1> clockwiseRotationCellSynapses,
-                Eigen::Matrix<double, Eigen::Dynamic, 1> counterClockwiseRotationCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterclockwiseRotationCellFiringRate,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
                 );
@@ -127,6 +112,18 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<double, Eigen::Dynamic, 1>
         virtual void UpdateFiringRate ();
         virtual void UpdateFiringRateTrace ();
 
+
+        /**
+         * @brief Update firing rate for training
+         *
+         * This requires a different equation, hence an overridden method
+         *
+         * @param deltaS Term in equation
+         *
+         * @return None
+         */
+        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS );
+
         /* ====================  OPERATORS     ======================================= */
 
         HDCells& operator = ( const HDCells &other ); /* assignment operator */
@@ -153,6 +150,8 @@ class HDCells: public Bionav::NeuronSet<Eigen::Matrix<double, Eigen::Dynamic, 1>
         double mPhi1;
         double mC_HD_ROT;
         double mPhi2;
+        double mSigmaHD;
+        double mEta;
 
 }; /* -----  end of class HDCells  ----- */
 

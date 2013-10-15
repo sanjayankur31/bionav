@@ -37,7 +37,7 @@
  * @todo This is under WIP. The template arguments are only written in to let
  * it compile properly
  */
-class HD_VisionSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<double, Eigen::Dynamic, 1>,Eigen::Matrix<double, Eigen::Dynamic, 1> >
+class HD_VisionSynapseSet: public Bionav::SynapseSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -48,7 +48,6 @@ class HD_VisionSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<double, Eigen
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
-        virtual void UpdateWeight (Eigen::Matrix<double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<double, Eigen::Dynamic, 1> postSynapticFiringRate ) { }
 
         /* ====================  OPERATORS     ======================================= */
 

@@ -35,7 +35,7 @@
  * set ensemble
  * 
  */
-class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Matrix<double, Eigen::Dynamic, 1>,Eigen::Matrix<double, Eigen::Dynamic, 1> >
+class HDSynapseSet: public Bionav::SynapseSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
@@ -46,26 +46,11 @@ class HDSynapseSet: public Bionav::SynapseSet<Eigen::Matrix<double, Eigen::Dynam
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
-        virtual void UpdateWeight (Eigen::Matrix<double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<double, Eigen::Dynamic, 1> postSynapticFiringRate );
 
         /* ====================  OPERATORS     ======================================= */
 
         HDSynapseSet& operator = ( const HDSynapseSet &other ); /* assignment operator */
 
-        /**
-         * @brief Initialize the matrices.
-         *
-         * The constructor sets a default dimension set. One can modify it and
-         * then call Init to resize and initialize the matrices accordingly
-         *
-         * This assumes that you've set your dimensions. It does no checks at
-         * all.
-         *
-         * @param None
-         *
-         * @return None
-         */
-        void Init ();
     protected:
         /* ====================  METHODS       ======================================= */
 

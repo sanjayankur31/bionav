@@ -56,6 +56,7 @@ HDSynapseSet::HDSynapseSet ( const HDSynapseSet &other )
  */
 HDSynapseSet::~HDSynapseSet ()
 {
+
 }  /* -----  end of method HDSynapseSet::~HDSynapseSet  (destructor)  ----- */
 
 /*
@@ -72,48 +73,3 @@ HDSynapseSet::operator = ( const HDSynapseSet &other )
     }
     return *this;
 }  /* -----  end of method HDSynapseSet::operator =  (assignment operator)  ----- */
-
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  HDSynapseSet
- *      Method:  HDSynapseSet :: Init
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-HDSynapseSet::Init (  )
-{
-    mWeightMatrix.resize(mDimensionX, mDimensionY);
-    mWeightMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-}		/* -----  end of method HDSynapseSet::Init  ----- */
-
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  HDSynapseSet
- *      Method:  HDSynapseSet :: UpdateWeight
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-HDSynapseSet::UpdateWeight (Eigen::Matrix<double, Eigen::Dynamic, 1> preSynapticFiringRate,Eigen::Matrix<double, Eigen::Dynamic, 1> postSynapticFiringRate )
-{
-    if (mIsPlastic == true)
-    {
-        mDeltaW.resize(mDimensionX, mDimensionY);
-        mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-        mDeltaW = mLearningRate * preSynapticFiringRate * postSynapticFiringRate.transpose ();
-
-        mWeightMatrix += mDeltaW;
-        ROS_DEBUG("%s: Synaptic weight updated.", mIdentifier.c_str ());
-    }
-    else 
-    {
-        ROS_DEBUG("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
-    }
-    return ;
-}		/* -----  end of method HDSynapseSet::UpdateWeight  ----- */
-
