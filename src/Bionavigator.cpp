@@ -214,7 +214,7 @@ Bionavigator::Calibrate (  )
          *  multiplication. This is clearer */
         mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
 
-        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace ().transpose () * mpRotationCellCounterClockwise->FiringRate ()));
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
         //mpHD_RotationCellCounterClockwiseSynapseSet->AddToWeight(delta_w.array ());
 
         /*  Not needed in this cycle. Save some computations, instead of it
@@ -253,7 +253,7 @@ Bionavigator::Calibrate (  )
 
         mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
 
-        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace ().transpose () * mpRotationCellClockwise->FiringRate ()));
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
 
         /*  Not needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
