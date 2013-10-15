@@ -109,9 +109,16 @@ Bionavigator::Init (  )
     mpHDCells->SetIdentifier (std::string("HD Cells"));
     mpHDCells->Init ();
     ROS_DEBUG("%s: Initialized", (mpHDCells->Identifier()).c_str ());
-    /*  Don't need to do this for rotation cells, since they are two
-     *  individual cells at the moment
-     */
+
+    /*  Rotation Cells */
+    mpRotationCellCounterClockwise->SetDimension(1,1);
+    mpRotationCellCounterClockwise->SetIdentifier(std::string("Rotation cell counter clockwise"));
+    mpRotationCellCounterClockwise->Init ();
+    ROS_DEBUG("%s: Initialized", (mpRotationCellCounterClockwise->Identifier()).c_str ());
+    mpRotationCellClockwise->SetDimension(1,1);
+    mpRotationCellClockwise->SetIdentifier(std::string("Rotation cell clockwise"));
+    mpRotationCellClockwise->Init ();
+    ROS_DEBUG("%s: Initialized", (mpRotationCellClockwise->Identifier()).c_str ());
 
     /*  Set up HDSynapseSet */
     mpHDSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_x);

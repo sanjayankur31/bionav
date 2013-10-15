@@ -84,7 +84,7 @@ HDCells::operator = ( const HDCells &other )
     void
 HDCells::UpdateActivation (
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterclockwiseRotationCellFiringRate,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellFiringRate,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
@@ -95,9 +95,10 @@ HDCells::UpdateActivation (
     /*  Because you can't use and modify a matrix simultaneously */
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix;
     temp_matrix.resize(mDimensionX,mDimensionY);
-    temp.matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+    temp_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
     for (double i = 0; i < 1; i += mDeltaT ) {
+        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + (((mDeltaT/mTau * mPhi0/mC_HD) * headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_HD_ROT) * (visionCellSynapses * mFiringRate) * visionCellFiringRate).matrix ());
 
 /*         temp_matrix = (((1.0 - mDeltaT/mTau)*mActivation) + ((mDeltaT/mTau)*(mPhi0/mC_HD)*((headCellSynapses.array() - mInhibitionRate).matrix () * mFiringRate)) + (mDeltaT/mTau)*(mPhi1/mC_HD_ROT)*(((clockwiseRotationCellSynapses * mFiringRate).array() * clockwiseRotationCellFiringRate).matrix () + (((counterClockwiseRotationCellSynapses * mFiringRate).array() * counterclockwiseRotationCellFiringRate).matrix ())) + ((mDeltaT/mTau) * (mPhi2/mC_HD) * (visionCellSynapses.array () * mFiringRate.array ()) * visionCellFiringRate).matrix());
  */
