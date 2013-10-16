@@ -85,6 +85,34 @@ class HDCells: public Bionav::NeuronSet
                 );
 
         /**
+         * @brief Update activation 
+         *
+         * Used to set initial direction. Sets a small packet of activity and
+         * lets it run to stabilize. Once done, the system starts to take in
+         * information from the imu and integrate it to publish a result.
+         * 
+         * It's only slightly different, in that we give a gaussian visual
+         * input to the system to force it to take a profile centered at our
+         * required reference direction.
+         *
+         * Since the rotation cells aren't firing here at all, either during
+         * forced firing of head cells, or during stabilization, we just strip
+         * the actual UpdateActivation function down to smaller bits. I
+         * could've used the same formula, but this will save unnecessary
+         * matrix computation, where the middle terms will just end up as 0.
+         * 
+         * @param initialDirectionMatrix Matrix holding an initial peak
+         * @param headCellSynapse The now stiff, head direction cann synapse
+         * set
+         *
+         * @return void
+         */
+        void UpdateActivation(
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initialDirectionMatrix,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses
+                );
+
+        /**
          * @brief Return the head direction of the network
          *
          * @param None
@@ -112,7 +140,6 @@ class HDCells: public Bionav::NeuronSet
         virtual void UpdateFiringRate ();
         virtual void UpdateFiringRateTrace ();
 
-
         /**
          * @brief Update firing rate for training
          *
@@ -120,9 +147,18 @@ class HDCells: public Bionav::NeuronSet
          *
          * @param deltaS Term in equation
          *
-         * @return None
+         * @return void
          */
-        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS );
+        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS, double sigmaHD);
+
+        /**
+         * @brief I need to initialize the activation matrix for HDCells also
+         *
+         * @param None
+         *
+         * @return void
+         */
+        void Init ();
 
         /* ====================  OPERATORS     ======================================= */
 
@@ -151,7 +187,6 @@ class HDCells: public Bionav::NeuronSet
         double mC_HD_ROT;
         double mPhi2;
         double mSigmaHD;
-        double mEta;
 
 }; /* -----  end of class HDCells  ----- */
 

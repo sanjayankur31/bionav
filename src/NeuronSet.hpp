@@ -68,6 +68,7 @@ namespace Bionav {
                  *
                 */
                 mIdentifier = std::string("NeuronSet");
+                mEta = 0;
 
             }
 
@@ -174,7 +175,7 @@ namespace Bionav {
              *
              * @param Nonw
              *
-             * @return None
+             * @return void
              */
             virtual void UpdateFiringRate () =0;
 
@@ -183,7 +184,7 @@ namespace Bionav {
              *
              * @param None
              *
-             * @return None
+             * @return void
              */
             virtual void UpdateFiringRateTrace () =0;
 
@@ -234,7 +235,7 @@ namespace Bionav {
              *
              * @param None
              *
-             * @return None
+             * @return void
              */
             void Init ( )
             {
@@ -252,7 +253,7 @@ namespace Bionav {
              *
              * @param None
              *
-             * @return None
+             * @return void
              */
             void EnableForceFire ( )
             {
@@ -267,7 +268,7 @@ namespace Bionav {
              *
              * @param None
              *
-             * @return None
+             * @return void
              */
             void DisableForceFire ( )
             {
@@ -287,6 +288,7 @@ namespace Bionav {
             double mDimensionY;            /**< Y dimension */
             bool mHasTrace;                     /**< Does this provide a trace matrix?  */
             bool mForceFiring;
+            double mEta;                   /**< @f$ \eta @f$ */
 
         private:
             /* ====================  METHODS       ======================================= */

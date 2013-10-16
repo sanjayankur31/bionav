@@ -87,6 +87,18 @@ class Bionavigator
         void Calibrate ();
 
         /**
+         * @brief initialize the system to an initial heading
+         *
+         * Basically, create a peak and let it stabilize so we can begin to
+         * process angular velocity inputs.
+         *
+         * @param None
+         *
+         * @return void
+         */
+        void SetInitialDirection ();
+
+        /**
          * @brief Publish current direction
          *
          * @todo I'll need to add more methods as I look to implement land mark
@@ -94,7 +106,7 @@ class Bionavigator
          *
          * @param rImuMessage reference to the received message
          *
-         * @return None
+         * @return void
          *
          * @todo When I work on the vision part, I'll need to use a message
          * filter TimeSynchronizer to keep the inputs from these nodes in sync
@@ -112,17 +124,6 @@ class Bionavigator
     private:
         /* ====================  METHODS       ======================================= */
 
-        /**
-         * @brief initialize the system to an initial heading
-         *
-         * Basically, create a peak and let it stabilize so we can beging to
-         * process angular velocity inputs.
-         *
-         * @param None
-         *
-         * @return None
-         */
-        void SetInitialDirection ();
 
         /**
          * @brief Do the work, update the head direction
@@ -153,6 +154,8 @@ class Bionavigator
         double mCount;                     /**< Keep a count of number of IMU messages we've processed */
         double mHeadDirection;             /**< The head direction */
         double mInhibitionRate;
+        double mInitialHeading;
+        double mSigmaHD;
 
 }; /* -----  end of class Bionavigator  ----- */
 

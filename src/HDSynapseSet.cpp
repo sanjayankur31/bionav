@@ -32,8 +32,6 @@ HDSynapseSet::HDSynapseSet ()
     mDimensionY = 100;
     mIdentifier = std::string("HDSynapses");
     mIsPlastic = true;
-    mEta = 0.9;
-
 }  /* -----  end of method HDSynapseSet::HDSynapseSet  (constructor)  ----- */
 
 /*

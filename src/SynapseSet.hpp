@@ -53,7 +53,6 @@ namespace Bionav {
             {
                 /*  Default values for constants */
                 mIsPlastic = false;
-                mEta = 0;
                 mIdentifier = std::string("SynapseSet");
             }
 
@@ -99,7 +98,7 @@ namespace Bionav {
              *
              * @param postSynapticFiringRate The postsynaptic firing rate
              *
-             * @return None
+             * @return void
              */
             void UpdateWeight(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preSynapticFiringRate, Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> postSynapticFiringRate)
             {
@@ -126,7 +125,7 @@ namespace Bionav {
              * @param addition Matrix term to be added to current synaptic
              * weight
              *
-             * @return None
+             * @return void
              */
             inline void AddToWeight(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> addition)
             {
@@ -229,13 +228,29 @@ namespace Bionav {
                 mWeightMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mDimensionX, mDimensionY);
             }
 
+            /**
+             * @brief rescale the synaptic weights to [0,1]
+             * 
+             * Divides by the largest value, and multiplies by provided value.
+             * More [0, multiplier] really.
+             *
+             * @param multiplier value to rescale to
+             *
+             * @return void
+             */
+            void Rescale (double multiplier) 
+            {
+                double temp = mWeightMatrix.maxCoeff ();
+                mWeightMatrix /= temp;
+                mWeightMatrix *= multiplier;
+            }
+
         protected:
             /* ====================  METHODS       ======================================= */
 
             /* ====================  DATA MEMBERS  ======================================= */
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mWeightMatrix;
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mDeltaW;
-            double mEta;                   /**< @f$ \eta @f$ */
             double mLearningRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
