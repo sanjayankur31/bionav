@@ -134,7 +134,7 @@ class HDCells: public Bionav::NeuronSet
          */
         void UpdateDirectionalRange () {
             mDirectionalRange = 360/mDimensionX;
-            ROS_DEBUG("%s: directional range updated to: %f", mIdentifier.c_str (), mDirectionalRange);
+            ROS_INFO("%s: directional range updated to: %f", mIdentifier.c_str (), mDirectionalRange);
         }
 
         virtual void UpdateFiringRate ();

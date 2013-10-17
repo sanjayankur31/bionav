@@ -146,10 +146,12 @@ HDCells::UpdateActivation (
     temp_matrix.resize(mDimensionX,mDimensionY);
     temp_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
-    for (double i = 0; i < 1; i += mDeltaT ) {
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + (((mDeltaT/mTau * mPhi0/mC_HD) * headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate) + ((mDeltaT/mTau * initialDirectionMatrix));
+    for (double i = 0; i < 1; i += mDeltaT ) 
+    {
+        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * initialDirectionMatrix));
         mActivation = temp_matrix;
     }
+    ROS_DEBUG("%s: Activation values: [%f, %f]",mIdentifier.c_str (), mActivation.maxCoeff (), mActivation.minCoeff ());
 
 }		/* -----  end of method HDCells::UpdateActivation  ----- */
 
@@ -164,7 +166,10 @@ HDCells::UpdateActivation (
     void
 HDCells::UpdateFiringRate ( )
 {
-    mFiringRate = ((((1 + (((mActivation.array () -mAlpha))*(-2 * mBeta)).exp ()).inverse ())).matrix ());
+    /*  Rescale the activation to get a firing rate to get some of it in
+     *  negative */
+    mFiringRate = (1*(((1 + ((((mActivation.array () - (1.2 * mActivation.minCoeff ())) -mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
+    ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
 
 

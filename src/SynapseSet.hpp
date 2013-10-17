@@ -113,7 +113,7 @@ namespace Bionav {
                 }
                 else 
                 {
-                    ROS_DEBUG("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
+                    ROS_FATAL("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
                 }
             }
 
@@ -155,11 +155,11 @@ namespace Bionav {
             inline void SetPlastic ()
             {
                 if (mIsPlastic == true) {
-                    ROS_DEBUG ("%s: Synapse is already modifiable!", mIdentifier.c_str ());
+                    ROS_WARN ("%s: Synapse is already modifiable!", mIdentifier.c_str ());
                 }
                 else {
                     mIsPlastic = true;
-                    ROS_DEBUG ("%s: Synapse set as modifiable!", mIdentifier.c_str ());
+                    ROS_INFO ("%s: Synapse set as modifiable!", mIdentifier.c_str ());
                 }
             }
 
@@ -173,11 +173,11 @@ namespace Bionav {
             inline void SetStiff ()
             {
                 if (mIsPlastic == false) {
-                    ROS_DEBUG ("%s: Synapse is already stiff!", mIdentifier.c_str ());
+                    ROS_WARN ("%s: Synapse is already stiff!", mIdentifier.c_str ());
                 }
                 else {
                     mIsPlastic = false;
-                    ROS_DEBUG ("%s: Synapse set as stiff!", mIdentifier.c_str ());
+                    ROS_INFO ("%s: Synapse set as stiff!", mIdentifier.c_str ());
                 }
             }
 
@@ -190,11 +190,11 @@ namespace Bionav {
             inline void SetIdentifier (std::string identifier)
             {
                 if(mIdentifier != std::string ("SynapseSet")) {
-                    ROS_DEBUG ("%s: Identifier already set. Unable to comply!", mIdentifier.c_str ());
+                    ROS_WARN ("%s: Identifier already set. Unable to comply!", mIdentifier.c_str ());
                 }
                 else {
                     mIdentifier = identifier;
-                    ROS_DEBUG("%s: New identifier set.", mIdentifier.c_str ());
+                    ROS_INFO("%s: New identifier set.", mIdentifier.c_str ());
                 }
             }
 
@@ -211,7 +211,7 @@ namespace Bionav {
                 mDimensionX = dimensionX;
                 mDimensionY = dimensionY;
 
-                ROS_DEBUG("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
+                ROS_INFO("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
                 return ;
             }
 

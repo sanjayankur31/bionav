@@ -41,6 +41,8 @@ Bionavigator::Bionavigator ()
     mInitialHeading = 180;
     mCount = 0;
     mInhibitionRate = 0;
+
+    /*  sigma controls the width of the gaussian. Smaller sigma, smaller width */
     mSigmaHD = 10;
 
 
@@ -139,12 +141,14 @@ Bionavigator::Init (  )
     ROS_DEBUG("%s: Initialized", (mpHDSynapseSet->Identifier()).c_str ());
 
 
-    mpHD_RotationCellCounterClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_y);
+    /*  This is effective synaptic weight: HDx HDy and the Rotation cell. So,
+     *  dimension is 100x100, not 100x1 here. */
+    mpHD_RotationCellCounterClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_x);
     mpHD_RotationCellCounterClockwiseSynapseSet->SetIdentifier(std::string("HD - Rotation cell counter clockwise synapse set"));
     mpHD_RotationCellCounterClockwiseSynapseSet->Init ();
     ROS_DEBUG("%s: Initialized", (mpHD_RotationCellCounterClockwiseSynapseSet->Identifier()).c_str ());
 
-    mpHD_RotationCellClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_y);
+    mpHD_RotationCellClockwiseSynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_x);
     mpHD_RotationCellClockwiseSynapseSet->SetIdentifier(std::string("HD - Rotation cell clockwise synapse set"));
     mpHD_RotationCellClockwiseSynapseSet->Init ();
     ROS_DEBUG("%s: Initialized", (mpHD_RotationCellClockwiseSynapseSet->Identifier()).c_str ());
@@ -160,12 +164,12 @@ Bionavigator::Init (  )
      */
     mSubscriber = mNodeHandle.subscribe("torso_lift_imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
     ROS_ASSERT(mSubscriber);
-    ROS_DEBUG("Subscribed to torso_lift_imu/data");
+    ROS_INFO("Subscribed to torso_lift_imu/data");
 
     /*  Advertise what we want to publish */
     mHeadDirectionPublisher = mNodeHandle.advertise<std_msgs::Float64>("head_direction",10);
     ROS_ASSERT(mHeadDirectionPublisher);
-    ROS_DEBUG("Publishing to /head_direction");
+    ROS_INFO("Publishing to /head_direction");
 
 
 }		/* -----  end of method Bionavigator::Init  ----- */
@@ -184,7 +188,12 @@ Bionavigator::Calibrate (  )
     ROS_DEBUG("Calibrating system");
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_w;
+
+    /*  Ensure all synapses are plastic here */
+    mpHDSynapseSet->SetPlastic ();
+    mpHD_RotationCellClockwiseSynapseSet->SetPlastic ();
+    mpHD_RotationCellCounterClockwiseSynapseSet->SetPlastic ();
+
 
     delta_s.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
     delta_s = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
@@ -227,14 +236,11 @@ Bionavigator::Calibrate (  )
         mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
 
         mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
-        //mpHD_RotationCellCounterClockwiseSynapseSet->AddToWeight(delta_w.array ());
 
-        /*  Not needed in this cycle. Save some computations, instead of it
+        /*  Clockwise calibration not needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
-        //Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_w = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero ( mpHDCells->DimensionX (), mpHDCells->DimensionX () ); /* deltaW^(RC)_(ij) and delta_W^(ROT)_(ij) 1 and 2 separately */
-        //delta_w = mLearningRate * mpHDCells->mFiringRateMatrix * mpHDCells->mFiringRateTraceMatrix.transpose () * mRotationCellClockwise->FiringRate (); /* deltaW^(ROT)_(ij2) -> equation 11 */
-        //mHC_RCCounterClockwiseWeightMatrix += delta_w;
     }
+    ROS_DEBUG("%s calibrated",mpHD_RotationCellCounterClockwiseSynapseSet->Identifier().c_str ());
     /*
      * Clockwise
      */
@@ -249,8 +255,6 @@ Bionavigator::Calibrate (  )
         delta_x.resize(mpHDCells->DimensionX (), 1);
         threesixty_delta_x.resize(mpHDCells->DimensionX (), 1);
 
-        delta_w.resize(mpHDCells->DimensionX (), mpHDCells->DimensionX ());
-        delta_w = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero ( mpHDCells->DimensionX (), mpHDCells->DimensionX () ); /* deltaW^(RC)_(ij) and delta_W^(ROT)_(ij) 1 and 2 separately */
         delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), 1); /* |x_i - x| */
         threesixty_delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), 1); /* 360 - |x_i - x| */
 
@@ -267,12 +271,10 @@ Bionavigator::Calibrate (  )
 
         mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
 
-        /*  Not needed in this cycle. Save some computations, instead of it
+        /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
-        //Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_w = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero ( mpHDCells->DimensionX (), mpHDCells->DimensionX () ); /* deltaW^(RC)_(ij) and delta_W^(ROT)_(ij) 1 and 2 separately */
-        //delta_w = mLearningRate * mpHDCells->mFiringRateMatrix * mpHDCells->mFiringRateTraceMatrix.transpose () * mRotationCellClockwise->FiringRate (); /* deltaW^(ROT)_(ij2) -> equation 11 */
-        //mHC_RCCounterClockwiseWeightMatrix += delta_w;
     }
+    ROS_DEBUG("%s calibrated",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str ());
 /*     mHDCannWeightMatrix *= (1.0/3.6);
  */
 
@@ -294,8 +296,125 @@ Bionavigator::Calibrate (  )
     mpHD_RotationCellClockwiseSynapseSet->SetStiff ();
     mpHD_RotationCellCounterClockwiseSynapseSet->SetStiff ();
     mIsCalibrated = true;
+
+    ROS_DEBUG("Calibration complete");
+    ROS_DEBUG("Inhibition rate set: %f",mInhibitionRate);
+    ROS_DEBUG("Rescaled maximum synaptic strength in %s is: %f",mpHDSynapseSet->Identifier ().c_str (),mpHDSynapseSet->Max ());
+
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: SetInitialDirection
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::SetInitialDirection ( )
+{
+    ROS_INFO("Setting initial reference direction");
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> threesixty_delta_x;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initial_direction_matrix; /**< @f$I^{V}_i@f$  */
+
+    /*  For the message to be published */
+    std_msgs::Float64 msg;
+
+    initial_direction_matrix.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+
+    threesixty_delta_x.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    threesixty_delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()); /* 360 - |x_i - x| */
+    delta_s.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY ());
+    delta_s = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
+    delta_x.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()); /* |x_i - x| */
+    preferred_directions.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    preferred_directions = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
+
+    /*  Set up preferred directions of all head cells */
+    for (double i = (1.0* 360.0/mpHDCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpHDCells->DimensionX ()), j++)
+    {
+        preferred_directions (j, 0) = i;
+    }
+
+    /*  Disable all input completely */
+    mpRotationCellCounterClockwise->DisableForceFire ();
+    mpRotationCellClockwise->DisableForceFire ();
+    mpVisionCells->DisableForceFire ();
+    mpHDCells->DisableForceFire ();
+
+    delta_x = (preferred_directions.array () - mInitialHeading).abs ();
+    threesixty_delta_x = (360 - delta_x.array ());
+
+    delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
+
+    /*  Set up matrices for the equation */
+    /*  25 -> height of bells peak. I'm trying to stretch it vertically to
+     *  increase the difference in the max and min values of the activation
+     *  that is set up. The width of the gaussian is controlled by sigma.  */
+    initial_direction_matrix = (50*((((delta_s.array ().abs2 ())/(2.0*mSigmaHD*mSigmaHD))* -1.0).exp ())).matrix (); /* r^(HD)_i at time 0 */
+    ROS_DEBUG("Initial direction matrix set to max %f and min %f",initial_direction_matrix.maxCoeff (), initial_direction_matrix.minCoeff ());
+
+    /*
+     * Find a good number of iterations. Optimize it.
+     *
+     * It hits a max value of 68 in about 15 iterations.
+     */
+    ROS_INFO("Forcing an initial direction");
+    for (double i = 0; i < 15 ; i++ ) 
+    {
+        mpHDCells->UpdateActivation (initial_direction_matrix, mpHDSynapseSet->WeightMatrix ());
+        mpHDCells->UpdateFiringRate ();
+    }
+    mHeadDirection = mpHDCells->CurrentHeadDirection ();
+    ROS_DEBUG("Head direction is now: %f",mHeadDirection);
+    msg.data = mHeadDirection;
+    mHeadDirectionPublisher.publish(msg);
+
+    /*
+     * Stabilizes to 63.020370 in about 25 iterations
+     */
+    ROS_INFO("Stabilizing activity packet");
+    for (double j = 0; j < 200 ; j++) 
+    {
+        mpHDCells->UpdateActivation ( Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()), mpHDSynapseSet->WeightMatrix ());
+        mpHDCells->UpdateFiringRate ();
+        mHeadDirection = mpHDCells->CurrentHeadDirection ();
+        ROS_DEBUG("Head direction is now: %f",mHeadDirection);
+/*         msg.data = mHeadDirection;
+ *         mHeadDirectionPublisher.publish(msg);
+ */
+    }
+
+    mIsInitialDirectionSet = true;
+    ROS_INFO("Inital direction set to %f", mHeadDirection);
+}		/* -----  end of method Bionavigator::SetInitialDirection  ----- */
+
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: HeadDirection
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::HeadDirection ( )
+{
+    mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
+    mpHDCells->UpdateFiringRate ();
+
+    mHeadDirection = mpHDCells->CurrentHeadDirection ();
+
+    if (mHeadDirection == -1)
+    {
+        ROS_DEBUG("%s: Something went wrong. Head direction received -1", (mpHDCells->Identifier()).c_str ());
+    }
+}		/* -----  end of method Bionavigator::HeadDirection  ----- */
 
 
 /*
@@ -343,100 +462,3 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
 
 
 }		/* -----  end of method Bionavigator::CallbackPublishDirection  ----- */
-
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  Bionavigator
- *      Method:  Bionavigator :: SetInitialDirection
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-Bionavigator::SetInitialDirection ( )
-{
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> threesixty_delta_x;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initial_direction_matrix; /**< @f$I^{V}_i@f$  */
-
-    /*  For the message to be published */
-    std_msgs::Float64 msg;
-
-    initial_direction_matrix.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
-
-    threesixty_delta_x.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
-    threesixty_delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()); /* 360 - |x_i - x| */
-    delta_s.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY ());
-    delta_s = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
-    delta_x.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
-    delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()); /* |x_i - x| */
-    preferred_directions.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
-    preferred_directions = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
-
-    /*  Set up preferred directions of all head cells */
-    for (double i = (1.0* 360.0/mpHDCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpHDCells->DimensionX ()), j++)
-    {
-        preferred_directions (j, 0) = i;
-    }
-
-    /*  Disable all input completely */
-    mpRotationCellCounterClockwise->DisableForceFire ();
-    mpRotationCellClockwise->DisableForceFire ();
-    mpVisionCells->DisableForceFire ();
-    mpHDCells->DisableForceFire ();
-
-    delta_x = (preferred_directions.array () - mInitialHeading).abs ();
-    threesixty_delta_x = (360 - delta_x.array ());
-
-    delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
-
-    /*  Set up matrices for the equation */
-    initial_direction_matrix = (5*((((delta_s.array ().abs2 ())/(2.0*mSigmaHD*mSigmaHD))* -1.0).exp ())).matrix (); /* r^(HD)_i at time 0 */
-
-    for (double i = 0; i < 100 ; i++ ) 
-    {
-        mpHDCells->UpdateActivation (initial_direction_matrix, mpHDSynapseSet->WeightMatrix ());
-        mpHDCells->UpdateFiringRate ();
-        msg.data = mHeadDirection;
-        mHeadDirectionPublisher.publish(msg);
-    }
-
-    /*  Let the network settle till t=600  with zero input*/
-    for (double j = 0; j < 200 ; j++) 
-    {
-        mpHDCells->UpdateActivation ( Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()), mpHDSynapseSet->WeightMatrix ());
-        mpHDCells->UpdateFiringRate ();
-        msg.data = mHeadDirection;
-        mHeadDirectionPublisher.publish(msg);
-    }
-
-    mIsInitialDirectionSet = true;
-}		/* -----  end of method Bionavigator::SetInitialDirection  ----- */
-
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  Bionavigator
- *      Method:  Bionavigator :: HeadDirection
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-Bionavigator::HeadDirection ( )
-{
-    mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
-    mpHDCells->UpdateFiringRate ();
-
-    mHeadDirection = mpHDCells->CurrentHeadDirection ();
-
-    if (mHeadDirection == -1)
-    {
-        ROS_DEBUG("%s: Something went wrong. Head direction received -1", (mpHDCells->Identifier()).c_str ());
-    }
-}		/* -----  end of method Bionavigator::HeadDirection  ----- */
-
-

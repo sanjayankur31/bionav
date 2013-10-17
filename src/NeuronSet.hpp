@@ -125,11 +125,11 @@ namespace Bionav {
             inline void SetIdentifier (std::string identifier)
             {
                 if(mIdentifier != std::string ("NeuronSet")) {
-                    ROS_DEBUG ("%s: Identifier already set. Unable to comply!", mIdentifier.c_str ());
+                    ROS_WARN ("%s: Identifier already set. Unable to comply!", mIdentifier.c_str ());
                 }
                 else {
                     mIdentifier = identifier;
-                    ROS_DEBUG("%s: New identifier set.", mIdentifier.c_str ());
+                    ROS_INFO("%s: New identifier set.", mIdentifier.c_str ());
                 }
                 return ;
             }
@@ -147,7 +147,7 @@ namespace Bionav {
                 mDimensionX = dimensionX;
                 mDimensionY = dimensionY;
 
-                ROS_DEBUG("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
+                ROS_INFO("%s: Dimensions set to %f x %f", mIdentifier.c_str (), mDimensionX, mDimensionY);
                 return ;
             }
 
@@ -199,12 +199,12 @@ namespace Bionav {
             {
                 if (mHasTrace == true)
                 {
-                    ROS_DEBUG("%s: Trace already enabled.", mIdentifier.c_str ());
+                    ROS_WARN("%s: Trace already enabled.", mIdentifier.c_str ());
                 }
                 else 
                 {
                     mHasTrace = true;
-                    ROS_DEBUG("%s: Trace enabled.",mIdentifier.c_str ());
+                    ROS_INFO("%s: Trace enabled.",mIdentifier.c_str ());
                 }
                 return;
             }
@@ -220,12 +220,12 @@ namespace Bionav {
             {
                 if(mHasTrace == false)
                 {
-                    ROS_DEBUG("%s: Trace already disabled.", mIdentifier.c_str ());
+                    ROS_WARN("%s: Trace already disabled.", mIdentifier.c_str ());
                 }
                 else
                 {
                     mHasTrace = false;
-                    ROS_DEBUG("%s: Trace disabled.",mIdentifier.c_str ());
+                    ROS_INFO("%s: Trace disabled.",mIdentifier.c_str ());
                 }
                 return ;
             }

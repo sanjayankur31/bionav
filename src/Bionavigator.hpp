@@ -28,7 +28,7 @@
 #include "HD_RotationSynapseSet.hpp"
 #include "HDSynapseSet.hpp"
 #include "ros/ros.h"
-#include "ros/console.h"
+#include <ros/console.h>
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/Float64.h"
 
