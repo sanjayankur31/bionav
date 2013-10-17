@@ -1,3 +1,5 @@
 <launch>
+    <param name="use_sim_time" value="true" />
     <node name="bionav" pkg="bionav" type="bionav" respawn="false" output="screen" launch-prefix="gdb -ex run --args" />
+    <node pkg="rosbag" type="play" name="player" output="screen" args="--clock -l -d 360  -q /home/ankur/fuerte_workspace/rosbags/20130412_maplvl5_13.bag --topics /torso_lift_imu/data "/>
 </launch>

@@ -21,6 +21,7 @@
 #define  RotationCellClockwise_INC
 
 #include "NeuronSet.hpp"
+#include "std_msgs/Float64.h"
 /*
  * =====================================================================================
  *        Class:  RotationCellClockwise
@@ -46,9 +47,21 @@ class RotationCellClockwise: public Bionav::NeuronSet
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
-        virtual void UpdateFiringRate () { }
+        virtual void UpdateFiringRate () {} 
         virtual void UpdateFiringRateTrace () { }
 
+        /**
+         * @brief Update firing rate based on inputs from vestibules
+         *
+         * I don't need a firing rate method that depends on activation for
+         * rotation cells. They just take in angular velocity inputs and spew
+         * out accordingly.
+         * 
+         * @param angularVelocty input angular velocity from robots imu system
+         *
+         * @return firing rate calculated from inputs
+         */
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> UpdateFiringRate (double angularVelocity );
         /* ====================  OPERATORS     ======================================= */
 
         RotationCellClockwise& operator = ( const RotationCellClockwise &other ); /* assignment operator */

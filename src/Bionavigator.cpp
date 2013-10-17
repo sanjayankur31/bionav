@@ -375,10 +375,10 @@ Bionavigator::SetInitialDirection ( )
     mHeadDirectionPublisher.publish(msg);
 
     /*
-     * Stabilizes to 63.020370 in about 25 iterations
+     * Find a good number of loops for this
      */
     ROS_INFO("Stabilizing activity packet");
-    for (double j = 0; j < 200 ; j++) 
+    for (double j = 0; j < 50 ; j++) 
     {
         mpHDCells->UpdateActivation ( Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()), mpHDSynapseSet->WeightMatrix ());
         mpHDCells->UpdateFiringRate ();
@@ -403,12 +403,18 @@ Bionavigator::SetInitialDirection ( )
  *--------------------------------------------------------------------------------------
  */
     void
-Bionavigator::HeadDirection ( )
+Bionavigator::HeadDirection (double angularVelocityY )
 {
+    ROS_DEBUG("Angular velocity received: %f",angularVelocityY);
+
+    mpRotationCellClockwise->UpdateFiringRate (angularVelocityY);
+    mpRotationCellCounterClockwise->UpdateFiringRate (angularVelocityY);
+
     mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
     mpHDCells->UpdateFiringRate ();
 
     mHeadDirection = mpHDCells->CurrentHeadDirection ();
+    ROS_DEBUG("Head direction is now: %f",mHeadDirection);
 
     if (mHeadDirection == -1)
     {
@@ -445,20 +451,24 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
     }
 
 
-    /*
-     * Calculate the new head direction
+    /*  Only process every fifth packet. 
+     *  This needs to be tinkered with and optimised
      */
-    HeadDirection ();
-
-    /*
-     * You have to add the data to the struct before you publish it
-     */
-    std_msgs::Float64 msg;
-    msg.data = mHeadDirection;
-    mHeadDirectionPublisher.publish(msg);
-
     mCount++;
+    if (mCount/5 == 0)
+    {
+        /*
+         * Calculate the new head direction
+         */
+        HeadDirection (rImuMessage->angular_velocity.y);
 
+        /*
+         * You have to add the data to the struct before you publish it
+         */
+        std_msgs::Float64 msg;
+        msg.data = mHeadDirection;
+        mHeadDirectionPublisher.publish(msg);
 
+    }
 
 }		/* -----  end of method Bionavigator::CallbackPublishDirection  ----- */

@@ -66,4 +66,20 @@ RotationCellCounterClockwise::operator = ( const RotationCellCounterClockwise &o
     }
     return *this;
 }  /* -----  end of method RotationCellCounterClockwise::operator =  (assignment operator)  ----- */
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  RotationCellCounterClockwise
+ *      Method:  RotationCellCounterClockwise :: UpdateFiringRate
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
+RotationCellCounterClockwise::UpdateFiringRate (double angularVelocity )
+{
+    /*
+     * Greater than 0 is clockwise for me
+     */
+    mFiringRate << (-1.0 * angularVelocity);
+    return mFiringRate;
+}		/* -----  end of method RotationCellCounterClockwise::UpdateFiringRate  ----- */
 

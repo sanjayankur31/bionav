@@ -132,7 +132,7 @@ class Bionavigator
          *
          * @return mHeadDirection the updated head direction
          */
-        void HeadDirection ();
+        void HeadDirection (double angularVelocityY);
 
         /* ====================  DATA MEMBERS  ======================================= */
         HDCells* mpHDCells;                       /**< Head cell set */
