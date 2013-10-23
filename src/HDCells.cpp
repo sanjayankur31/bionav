@@ -32,13 +32,13 @@ HDCells::HDCells ()
     mDimensionX = 100;
     mDimensionY = 1;                            /* This has to be 1 at the moment. Other values are not supported */
     mHasTrace = true;
-    mTau = 1;
-    mC_HD_ROT = mDimensionX * 2;
-    mC_HD = mDimensionX;
-    mPhi0 = 8 * mC_HD;
-    mPhi1 = 400;
-    mPhi2 = 0;
-    mAlpha = 0;
+    mTau = 1.0;
+    mC_HD_ROT = (double)(mDimensionX * 2);
+    mC_HD = (double)(mDimensionX);
+    mPhi0 = 8.0 * mC_HD;
+    mPhi1 = (double)(100.0 * mC_HD_ROT);
+    mPhi2 = 0.0;
+    mAlpha = 0.0;
     mBeta = 0.1;
     mDeltaT = 0.0001;
 
@@ -123,10 +123,40 @@ HDCells::UpdateActivation (
     temp_matrix.resize(mDimensionX,mDimensionY);
     temp_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix1;
+    temp_matrix1.resize(mDimensionX,mDimensionY);
+    temp_matrix1 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix2;
+    temp_matrix2.resize(mDimensionX,mDimensionY);
+    temp_matrix2 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+    mDeltaT = 1.0/50;
+
     for (double i = 0; i < 1; i += mDeltaT ) {
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + (((mDeltaT/mTau * mPhi0/mC_HD) * headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_HD_ROT) * (visionCellSynapses * mFiringRate) * visionCellFiringRate).matrix ());
-        mActivation = temp_matrix;
+
+        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_HD_ROT) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
+        */
+
+        /*  Cut out vision for the time being  */
+        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+        */
+
+        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation);
+
+//        ROS_DEBUG("First term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
+
+        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
+//        ROS_DEBUG("Second term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+
+        temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+//        ROS_DEBUG("Third term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
+
+        mActivation = temp_matrix + temp_matrix1 + temp_matrix2;
     }
+
+    ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+
 }		/* -----  end of method HDCells::UpdateActivation  ----- */
 
 

@@ -82,7 +82,13 @@ RotationCellClockwise::UpdateFiringRate (double angularVelocity )
     /*
      * Greater than 0 is clockwise for me
      */
-    mFiringRate << angularVelocity;
+    if (angularVelocity > 0)
+        mFiringRate << (1.0 * angularVelocity);
+    else 
+        mFiringRate << 0;
+
+    ROS_DEBUG_STREAM (mIdentifier << ": Firing rate is: " << mFiringRate);
+
     return mFiringRate;
 }		/* -----  end of method RotationCellClockwise::UpdateFiringRate  ----- */
 

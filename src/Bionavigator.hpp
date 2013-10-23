@@ -115,6 +115,18 @@ class Bionavigator
          */
         void CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMessage);
 
+        /**
+         * @brief set up ros related stuff
+         *
+         * Subscribe/advertise. This can be called after the initialization is
+         * done, or before, as needed.
+         *
+         *
+         * @param none
+         *
+         * @return void
+         */
+        void RosInit ();
 
     protected:
         /* ====================  METHODS       ======================================= */
@@ -134,6 +146,7 @@ class Bionavigator
          */
         void HeadDirection (double angularVelocityY);
 
+
         /* ====================  DATA MEMBERS  ======================================= */
         HDCells* mpHDCells;                       /**< Head cell set */
         RotationCellCounterClockwise* mpRotationCellCounterClockwise; /**< Counter clockwise rotation cell */
@@ -151,7 +164,7 @@ class Bionavigator
 
         bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
         bool mIsCalibrated;                     /**< Is the network calibrated */
-        double mCount;                     /**< Keep a count of number of IMU messages we've processed */
+        int mCount;                     /**< Keep a count of number of IMU messages we've processed */
         double mHeadDirection;             /**< The head direction */
         double mInhibitionRate;
         double mInitialHeading;

@@ -159,18 +159,6 @@ Bionavigator::Init (  )
     ROS_DEBUG("%s: Initialized", (mpHD_VisionSynapseSet->Identifier()).c_str ());
 
 
-    /*
-     * Subscribe to ros node
-     */
-    mSubscriber = mNodeHandle.subscribe("torso_lift_imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
-    ROS_ASSERT(mSubscriber);
-    ROS_INFO("Subscribed to torso_lift_imu/data");
-
-    /*  Advertise what we want to publish */
-    mHeadDirectionPublisher = mNodeHandle.advertise<std_msgs::Float64>("head_direction",10);
-    ROS_ASSERT(mHeadDirectionPublisher);
-    ROS_INFO("Publishing to /head_direction");
-
 
 }		/* -----  end of method Bionavigator::Init  ----- */
 
@@ -240,7 +228,7 @@ Bionavigator::Calibrate (  )
         /*  Clockwise calibration not needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
     }
-    ROS_DEBUG("%s calibrated",mpHD_RotationCellCounterClockwiseSynapseSet->Identifier().c_str ());
+    ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellCounterClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellCounterClockwiseSynapseSet->Max (), mpHD_RotationCellCounterClockwiseSynapseSet->Min ());
     /*
      * Clockwise
      */
@@ -274,10 +262,11 @@ Bionavigator::Calibrate (  )
         /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
     }
-    ROS_DEBUG("%s calibrated",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str ());
+    ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellClockwiseSynapseSet->Max (), mpHD_RotationCellClockwiseSynapseSet->Min ());
 /*     mHDCannWeightMatrix *= (1.0/3.6);
  */
 
+    /*  Before rescale */
     /*  rescale  */
     mpHDSynapseSet->Rescale (0.8);
     mpHD_RotationCellClockwiseSynapseSet->Rescale (0.8);
@@ -299,8 +288,6 @@ Bionavigator::Calibrate (  )
 
     ROS_DEBUG("Calibration complete");
     ROS_DEBUG("Inhibition rate set: %f",mInhibitionRate);
-    ROS_DEBUG("Rescaled maximum synaptic strength in %s is: %f",mpHDSynapseSet->Identifier ().c_str (),mpHDSynapseSet->Max ());
-
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
 /*
@@ -378,7 +365,7 @@ Bionavigator::SetInitialDirection ( )
      * Find a good number of loops for this
      */
     ROS_INFO("Stabilizing activity packet");
-    for (double j = 0; j < 50 ; j++) 
+    for (double j = 0; j < 30 ; j++) 
     {
         mpHDCells->UpdateActivation ( Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()), mpHDSynapseSet->WeightMatrix ());
         mpHDCells->UpdateFiringRate ();
@@ -405,7 +392,7 @@ Bionavigator::SetInitialDirection ( )
     void
 Bionavigator::HeadDirection (double angularVelocityY )
 {
-    ROS_DEBUG("Angular velocity received: %f",angularVelocityY);
+    //ROS_DEBUG("Angular velocity received: %f",angularVelocityY);
 
     mpRotationCellClockwise->UpdateFiringRate (angularVelocityY);
     mpRotationCellCounterClockwise->UpdateFiringRate (angularVelocityY);
@@ -442,6 +429,7 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
         Calibrate ();
     }
 
+
     /*  Make sure initial direction was set before
      *  we begin processing inputs
      */
@@ -451,11 +439,12 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
     }
 
 
+
     /*  Only process every fifth packet. 
      *  This needs to be tinkered with and optimised
      */
     mCount++;
-    if (mCount/5 == 0)
+    if ((mCount%5) == 0)
     {
         /*
          * Calculate the new head direction
@@ -472,3 +461,29 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
     }
 
 }		/* -----  end of method Bionavigator::CallbackPublishDirection  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: RosInit
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::RosInit ( )
+{
+    /*
+     * Subscribe to ros node
+     */
+    mSubscriber = mNodeHandle.subscribe("torso_lift_imu/data", 50, &Bionavigator::CallbackPublishDirection, this);
+    ROS_ASSERT(mSubscriber);
+    ROS_INFO("Subscribed to torso_lift_imu/data");
+
+    /*  Advertise what we want to publish */
+    mHeadDirectionPublisher = mNodeHandle.advertise<std_msgs::Float64>("head_direction",10);
+    ROS_ASSERT(mHeadDirectionPublisher);
+    ROS_INFO("Publishing to /head_direction");
+
+}		/* -----  end of method Bionavigator::RosInit  ----- */
+

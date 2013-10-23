@@ -32,11 +32,14 @@ main ( int argc, char **argv )
 
     Bionavigator* bionavigator = new Bionavigator ();
     bionavigator->Init ();
+    bionavigator->RosInit ();
 
     /*  It might be possible to store these values to use in later runs. The
      *  training is the same in each run. No point doing it again and again. */
     bionavigator->Calibrate ();
     bionavigator->SetInitialDirection ();
+
+
 
     ros::spin();
 

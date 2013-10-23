@@ -54,6 +54,7 @@ namespace Bionav {
                 /*  Default values for constants */
                 mIsPlastic = false;
                 mIdentifier = std::string("SynapseSet");
+                mLearningRate = 0.01;
             }
 
             ~SynapseSet () { ;}                             /**< destructor */
@@ -142,6 +143,18 @@ namespace Bionav {
             double Max ()
             {
                 return mWeightMatrix.maxCoeff ();
+            }
+
+            /**
+             * @returns minimum value of synaptic weight
+             *
+             * @param None
+             *
+             * @return minimum value of synaptic weight
+             */
+            double Min ()
+            {
+                return mWeightMatrix.minCoeff ();
             }
 
 
@@ -243,6 +256,8 @@ namespace Bionav {
                 double temp = mWeightMatrix.maxCoeff ();
                 mWeightMatrix /= temp;
                 mWeightMatrix *= multiplier;
+
+                ROS_DEBUG("%s: rescaled to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
             }
 
         protected:
