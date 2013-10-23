@@ -40,7 +40,6 @@ Bionavigator::Bionavigator ()
 
     mInitialHeading = 180;
     mCount = 0;
-    mInhibitionRate = 0;
 
     /*  sigma controls the width of the gaussian. Smaller sigma, smaller width */
     mSigmaHD = 10;
@@ -273,7 +272,7 @@ Bionavigator::Calibrate (  )
     mpHD_RotationCellCounterClockwiseSynapseSet->Rescale (0.8);
 
     /*  Set the inhibition rate */
-    mInhibitionRate = (0.4 * mpHDSynapseSet->Max ());
+    mpHDCells->InhibitionRate (0.4 * mpHDSynapseSet->Max ());
 
     /*  Disable all the force firing */
     mpRotationCellClockwise->DisableForceFire ();
@@ -287,7 +286,7 @@ Bionavigator::Calibrate (  )
     mIsCalibrated = true;
 
     ROS_DEBUG("Calibration complete");
-    ROS_DEBUG("Inhibition rate set: %f",mInhibitionRate);
+    ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
 /*

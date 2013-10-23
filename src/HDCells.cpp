@@ -36,7 +36,7 @@ HDCells::HDCells ()
     mC_HD_ROT = (double)(mDimensionX * 2);
     mC_HD = (double)(mDimensionX);
     mPhi0 = 8.0 * mC_HD;
-    mPhi1 = (double)(100.0 * mC_HD_ROT);
+    mPhi1 = (double)(200.0 * mC_HD_ROT);
     mPhi2 = 0.0;
     mAlpha = 0.0;
     mBeta = 0.1;
@@ -144,17 +144,15 @@ HDCells::UpdateActivation (
 
         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation);
 
-//        ROS_DEBUG("First term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
-
         temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
-//        ROS_DEBUG("Second term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
-
         temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
-//        ROS_DEBUG("Third term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2;
     }
 
+    ROS_DEBUG("First term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
+    ROS_DEBUG("Second term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+    ROS_DEBUG("Third term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
     ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
 
 }		/* -----  end of method HDCells::UpdateActivation  ----- */
@@ -198,7 +196,9 @@ HDCells::UpdateFiringRate ( )
 {
     /*  Rescale the activation to get a firing rate to get some of it in
      *  negative */
-    mFiringRate = (1*(((1 + ((((mActivation.array () - (1.2 * mActivation.minCoeff ())) -mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
+/*     mFiringRate = (1*(((1 + ((((mActivation.array () - (1.2 * mActivation.minCoeff ())) -mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
+ */
+    mFiringRate = (1*(((1 + (((mActivation.array () - mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
     ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
 

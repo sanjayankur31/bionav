@@ -47,8 +47,18 @@ class HDCells: public Bionav::NeuronSet
         ~HDCells ();                            /* destructor       */
 
         /* ====================  ACCESSORS     ======================================= */
+        /**
+         * @brief Accessor to inhibition rate
+         *
+         * @param None
+         *
+         * @return inhibitionRate The inhibition rate
+         */
+        inline double InhibitionRate () { return mInhibitionRate; }
 
         /* ====================  MUTATORS      ======================================= */
+
+        inline void InhibitionRate (double inhibitionRate) { mInhibitionRate = inhibitionRate; }
 
         /**
          * @brief Update the activation value at each step. 
