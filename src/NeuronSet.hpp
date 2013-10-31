@@ -68,7 +68,7 @@ namespace Bionav {
                  *
                 */
                 mIdentifier = std::string("NeuronSet");
-                mEta = 0;
+                mEta = 0.9;
 
             }
 
@@ -257,10 +257,18 @@ namespace Bionav {
              */
             void EnableForceFire ( )
             {
-                Init ();
-                mFiringRate.array() += 1;
-                mFiringRateTrace.array() += 1;
-                mForceFiring = true;
+                if (mForceFiring == false)
+                {
+                    Init ();
+                    mFiringRate.array() += 1;
+                    mFiringRateTrace.array() += 1;
+                    mForceFiring = true;
+                    ROS_DEBUG("%s: Force firing enabled", mIdentifier.c_str ());
+                }
+                else 
+                {
+                    ROS_WARN("%s: Force firing already enabled", mIdentifier.c_str ());
+                }
             }
 
             /**
@@ -272,8 +280,16 @@ namespace Bionav {
              */
             void DisableForceFire ( )
             {
-                Init ();
-                mForceFiring = false;
+                if (mForceFiring == true)
+                {
+                    Init ();
+                    mForceFiring = false;
+                    ROS_DEBUG("%s: Force firing disabled", mIdentifier.c_str ());
+                }
+                else 
+                {
+                    ROS_WARN("%s: Force firing already disabled", mIdentifier.c_str ());
+                }
             }
         protected:
             /* ====================  METHODS       ======================================= */

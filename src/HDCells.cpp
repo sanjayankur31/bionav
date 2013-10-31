@@ -35,9 +35,10 @@ HDCells::HDCells ()
     mTau = 1.0;
     mC_HD_ROT = (double)(mDimensionX * 2);
     mC_HD = (double)(mDimensionX);
-    mPhi0 = 8.0 * mC_HD;
-    mPhi1 = (double)(200.0 * mC_HD_ROT);
-    mPhi2 = 0.0;
+    mC_HD_V = (double)(mDimensionX);
+    mPhi0 = (double)(24.0 * mC_HD);
+    mPhi1 = (double)(4.0 * mC_HD_ROT);
+    mPhi2 = (double)(16.0 * mC_HD_V);
     mAlpha = 0.0;
     mBeta = 0.1;
     mDeltaT = 0.0001;
@@ -131,6 +132,10 @@ HDCells::UpdateActivation (
     temp_matrix2.resize(mDimensionX,mDimensionY);
     temp_matrix2 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix3;
+    temp_matrix3.resize(mDimensionX,mDimensionY);
+    temp_matrix3 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
     mDeltaT = 1.0/50;
 
     for (double i = 0; i < 1; i += mDeltaT ) {
@@ -146,14 +151,17 @@ HDCells::UpdateActivation (
 
         temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
         temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_HD_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
 
-        mActivation = temp_matrix + temp_matrix1 + temp_matrix2;
+        mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
     }
 
-    ROS_DEBUG("First term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
-    ROS_DEBUG("Second term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
-    ROS_DEBUG("Third term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
-    ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+/*     ROS_DEBUG("Recurrent term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
+ *     ROS_DEBUG("Firing rate term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+ *     ROS_DEBUG("Vestibular term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
+ *     ROS_DEBUG("Vision term: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
+ *     ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+ */
 
 }		/* -----  end of method HDCells::UpdateActivation  ----- */
 
@@ -176,7 +184,7 @@ HDCells::UpdateActivation (
 
     for (double i = 0; i < 1; i += mDeltaT ) 
     {
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * initialDirectionMatrix));
+        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + (((mDeltaT/mTau)*initialDirectionMatrix));
         mActivation = temp_matrix;
     }
     ROS_DEBUG("%s: Activation values: [%f, %f]",mIdentifier.c_str (), mActivation.maxCoeff (), mActivation.minCoeff ());
@@ -199,7 +207,8 @@ HDCells::UpdateFiringRate ( )
 /*     mFiringRate = (1*(((1 + ((((mActivation.array () - (1.2 * mActivation.minCoeff ())) -mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
  */
     mFiringRate = (1*(((1 + (((mActivation.array () - mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
-    ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
+/*     ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
+ */
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
 
 
@@ -228,7 +237,7 @@ HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
     void
 HDCells::UpdateFiringRateTrace ( )
 {
-        mFiringRateTrace = (1 - mEta) * mFiringRate+ mEta * mFiringRateTrace; /* rTrace^(HD)_i -> equation 7 */
+        mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace); /* rTrace^(HD)_i -> equation 7 */
 }		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
 
 /*

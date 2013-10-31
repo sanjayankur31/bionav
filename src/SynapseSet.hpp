@@ -61,6 +61,24 @@ namespace Bionav {
 
             /* ====================  ACCESSORS     ======================================= */
             /**
+             * @brief return Y dimension
+             *
+             * @param None
+             *
+             * @return mDimensionY Y dimension
+             */
+            double DimensionY () { return mDimensionY; }
+
+            /**
+             * @brief return X dimension
+             *
+             * @param None
+             *
+             * @return mDimensionX X dimension
+             */
+            double DimensionX () { return mDimensionX; }
+
+            /**
              * @brief Is this synapse set modifiable?
              *
              * @param None
@@ -110,7 +128,7 @@ namespace Bionav {
                     mDeltaW = mLearningRate * preSynapticFiringRate * postSynapticFiringRate;
 
                     mWeightMatrix += mDeltaW;
-                    ROS_DEBUG("%s: Synaptic weight updated.", mIdentifier.c_str ());
+                    ROS_DEBUG("%s: Synaptic weight updated by [%f, %f]", mIdentifier.c_str (), mDeltaW.maxCoeff (), mDeltaW.minCoeff ());
                 }
                 else 
                 {
@@ -130,7 +148,17 @@ namespace Bionav {
              */
             inline void AddToWeight(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> addition)
             {
-                mWeightMatrix += addition;
+                if (mIsPlastic == true)
+                {
+                    ROS_DEBUG_STREAM("Size of additive matrix is: " << addition.rows () << " x " << addition.cols ());
+                    ROS_DEBUG_STREAM("Size of left matrix is: " << mWeightMatrix.rows () << " x " << mWeightMatrix.cols ());
+                    mWeightMatrix += addition;
+                    ROS_DEBUG("%s: Synaptic weight updated.", mIdentifier.c_str ());
+                }
+                else 
+                {
+                    ROS_FATAL("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
+                }
             }
 
             /**

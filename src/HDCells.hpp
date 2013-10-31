@@ -195,6 +195,7 @@ class HDCells: public Bionav::NeuronSet
         double mInhibitionRate;
         double mPhi1;
         double mC_HD_ROT;
+        double mC_HD_V;
         double mPhi2;
         double mSigmaHD;
 

@@ -28,6 +28,7 @@
  */
 HD_VisionSynapseSet::HD_VisionSynapseSet ()
 {
+    mLearningRate = 1;
 }  /* -----  end of method HD_VisionSynapseSet::HD_VisionSynapseSet  (constructor)  ----- */
 
 /*
