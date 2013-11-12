@@ -36,8 +36,12 @@ HDCells::HDCells ()
     mC_HD_ROT = (double)(mDimensionX * 2);
     mC_HD = (double)(mDimensionX);
     mC_HD_V = (double)(mDimensionX);
-    mPhi0 = (double)(24.0 * mC_HD);
-    mPhi1 = (double)(4.0 * mC_HD_ROT);
+/*     mPhi0 = (double)(23.0 * mC_HD);
+ */
+    mPhi0 = (double)(1.0 * mC_HD);
+/*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
+ */
+    mPhi1 = (double)(1.0 * mC_HD_ROT);
     mPhi2 = (double)(16.0 * mC_HD_V);
     mAlpha = 0.0;
     mBeta = 0.1;
@@ -155,13 +159,14 @@ HDCells::UpdateActivation (
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
     }
-
-/*     ROS_DEBUG("Recurrent term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
- *     ROS_DEBUG("Firing rate term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+/* 
+ *     ROS_DEBUG("Recurrent term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
  *     ROS_DEBUG("Vestibular term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
  *     ROS_DEBUG("Vision term: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
- *     ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
  */
+      ROS_DEBUG("Firing rate term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+      ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+  
 
 }		/* -----  end of method HDCells::UpdateActivation  ----- */
 
@@ -202,11 +207,41 @@ HDCells::UpdateActivation (
     void
 HDCells::UpdateFiringRate ( )
 {
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix;
+    temp_matrix.resize(mDimensionX,mDimensionY);
+    temp_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix1;
+    temp_matrix1.resize(mDimensionX,mDimensionY);
+    temp_matrix1 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix2;
+    temp_matrix2.resize(mDimensionX,mDimensionY);
+    temp_matrix2 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix3;
+    temp_matrix3.resize(mDimensionX,mDimensionY);
+    temp_matrix3 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
     /*  Rescale the activation to get a firing rate to get some of it in
      *  negative */
 /*     mFiringRate = (1*(((1 + ((((mActivation.array () - (1.2 * mActivation.minCoeff ())) -mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
  */
-    mFiringRate = (1*(((1 + (((mActivation.array () - mAlpha))*(-2 * mBeta)).exp ()).inverse ()))).matrix ();
+/*     mFiringRate = (1*(((1 + (((mActivation.array () - mAlpha))*(-2 * mBeta))array().exp ()).array().inverse ()))).matrix ();
+ */
+    temp_matrix1 = (-1.0 * mActivation.array ());
+    temp_matrix2 = (temp_matrix1.array().exp ());
+    temp_matrix3 = (temp_matrix2.array() +1.0);
+    mFiringRate = temp_matrix3.array ().inverse ();
+        
+
+/*     ROS_DEBUG("Firing term1: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
+ *     ROS_DEBUG("Firing term2: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
+ *     ROS_DEBUG("Firing term3: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
+ */
+/*     ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
+ */
+
+    //mFiringRate = (1+((-1*mActivation.array ()).array().exp ()).array()).inverse ().matrix ();
 /*     ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
  */
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */

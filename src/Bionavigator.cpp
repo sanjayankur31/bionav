@@ -40,6 +40,8 @@ Bionavigator::Bionavigator ()
 
     mInitialHeading = 180;
     mCount = 0;
+    mPositive = 0;
+    mNegative = 0;
 
     /*  sigma controls the width of the gaussian. Smaller sigma, smaller width */
     mSigmaHD = 10;
@@ -184,6 +186,8 @@ Bionavigator::Calibrate (  )
     ROS_DEBUG("Calibrating system");
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
+    const double PI  =3.141592653589793238462;
+    double firing_rate_for_training = (2.0*PI)/mpHDCells->DimensionX ();
 
     /*  Ensure all synapses are plastic here */
     mpHDSynapseSet->SetPlastic ();
@@ -206,8 +210,9 @@ Bionavigator::Calibrate (  )
     /*  Anti clockwise */
     mpHDCells->Init ();
 
-    mpRotationCellCounterClockwise->EnableForceFire ();
-    ROS_DEBUG_STREAM("" << mpRotationCellCounterClockwise->Identifier ().c_str () << ": Firing rate is: " << mpRotationCellCounterClockwise->FiringRate ());
+    mpRotationCellCounterClockwise->EnableForceFire (firing_rate_for_training);
+/*     ROS_DEBUG_STREAM("" << mpRotationCellCounterClockwise->Identifier ().c_str () << ": Firing rate is: " << mpRotationCellCounterClockwise->FiringRate ());
+ */
     mpRotationCellClockwise->DisableForceFire ();
     for (int i = mpHDCells->DimensionX (); i >= 1;  i--)
     {
@@ -247,8 +252,9 @@ Bionavigator::Calibrate (  )
      */
     mpHDCells->Init ();
 
-    mpRotationCellClockwise->EnableForceFire ();
-    ROS_DEBUG_STREAM("" << mpRotationCellClockwise->Identifier ().c_str () << ": Firing rate is: " << mpRotationCellClockwise->FiringRate ());
+    mpRotationCellClockwise->EnableForceFire (firing_rate_for_training);
+/*     ROS_DEBUG_STREAM("" << mpRotationCellClockwise->Identifier ().c_str () << ": Firing rate is: " << mpRotationCellClockwise->FiringRate ());
+ */
     for (int i = 1; i <= mpHDCells->DimensionX (); i++)
     {
         Eigen::Matrix<double, Eigen::Dynamic, 1> delta_x;
@@ -291,7 +297,6 @@ Bionavigator::Calibrate (  )
 
     /*  Set the inhibition rate */
     //mpHDCells->InhibitionRate (0.2 * mpHDSynapseSet->WeightMatrix ().maxCoeff ());
-    mpHDCells->InhibitionRate (0.01);
 
     /*  Disable all the force firing */
     mpRotationCellClockwise->DisableForceFire ();
@@ -299,13 +304,13 @@ Bionavigator::Calibrate (  )
 
     /*  Set synapses to stiff. These synapses don't need any modification
      *  in the future. */
-    mpHDSynapseSet->SetStiff ();
-    mpHD_RotationCellClockwiseSynapseSet->SetStiff ();
-    mpHD_RotationCellCounterClockwiseSynapseSet->SetStiff ();
+/*     mpHDSynapseSet->SetStiff ();
+ *     mpHD_RotationCellClockwiseSynapseSet->SetStiff ();
+ *     mpHD_RotationCellCounterClockwiseSynapseSet->SetStiff ();
+ */
     mIsCalibrated = true;
 
     ROS_DEBUG("Calibration complete");
-    ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
 /*
@@ -377,7 +382,7 @@ Bionavigator::SetInitialDirection ( )
      * Find a good number of iterations. Optimize it.
      */
     ROS_INFO("Forcing an initial direction");
-    for (double i = 0; i < 25 ; i++ ) 
+    for (double i = 0; i < 1 ; i++ ) 
     {
 //        mpHDCells->UpdateActivation (initial_direction_matrix, mpHDSynapseSet->WeightMatrix ());
 
@@ -394,14 +399,30 @@ Bionavigator::SetInitialDirection ( )
      * Find a good number of loops for this
      */
     ROS_INFO("Stabilizing activity packet");
-    for (double j = 0; j < 200 ; j++) 
+    for (double j = 0; j < 1000 ; j++) 
     {
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
 /*         mpHDCells->UpdateActivation ( Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()), mpHDSynapseSet->WeightMatrix ());
  */
         mpHDCells->UpdateFiringRate ();
+        mpHDCells->UpdateFiringRateTrace ();
         mHeadDirection = mpHDCells->CurrentHeadDirection ();
         ROS_DEBUG("Head direction is now: %f",mHeadDirection);
+
+        /*  Learning still occurs! */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+
+        /*  Bound the synaptic weight. It cannot grow unbound */
+        /*  Regularization may be a better method. Need to check and compare. */
+        mpHDSynapseSet->Rescale (1.0);
+        mpHD_RotationCellClockwiseSynapseSet->Rescale (1.0);
+        mpHD_RotationCellCounterClockwiseSynapseSet->Rescale(1.0);
+
+
+        mpHDCells->InhibitionRate ((0.44*mpHDSynapseSet->WeightMatrix().maxCoeff ()));
+        ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
 /*         msg.data = mHeadDirection;
  *         mHeadDirectionPublisher.publish(msg);
  */
@@ -421,23 +442,43 @@ Bionavigator::SetInitialDirection ( )
  *--------------------------------------------------------------------------------------
  */
     void
-Bionavigator::HeadDirection (double angularVelocityY )
+Bionavigator::HeadDirection (double angularVelocityZ )
 {
-    ROS_DEBUG("Angular velocity received: %f",angularVelocityY);
-
-    mpRotationCellClockwise->UpdateFiringRate (angularVelocityY);
-    mpRotationCellCounterClockwise->UpdateFiringRate (angularVelocityY);
+/*     ROS_DEBUG("Angular velocity received: %f",angularVelocityZ);
+ */
+    mpRotationCellClockwise->UpdateFiringRate (angularVelocityZ);
+    mpRotationCellCounterClockwise->UpdateFiringRate (angularVelocityZ);
 
     mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
     mpHDCells->UpdateFiringRate ();
+    mpHDCells->UpdateFiringRateTrace ();
 
+    /*  Learning still occurs! */
+    mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+    mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+    mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+
+    /*  Bound the synaptic weight. It cannot grow unbound */
+    mpHDSynapseSet->Rescale (1.0);
+    mpHD_RotationCellClockwiseSynapseSet->Rescale (1.0);
+    mpHD_RotationCellCounterClockwiseSynapseSet->Rescale(1.0);
+
+
+    mpHDCells->InhibitionRate ((0.45*mpHDSynapseSet->WeightMatrix().maxCoeff ()));
+    ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
+
+    mHeadDirectionPrev = mHeadDirection;
     mHeadDirection = mpHDCells->CurrentHeadDirection ();
-    ROS_DEBUG("Head direction is now: %f",mHeadDirection);
+    ROS_DEBUG_STREAM ("Head direction is now: " << mHeadDirection << " for firing rates: " << std::fixed << mpRotationCellClockwise->FiringRate () << ", " << std::fixed << mpRotationCellCounterClockwise->FiringRate ());
 
     if (mHeadDirection == -1)
     {
         ROS_DEBUG("%s: Something went wrong. Head direction received -1", (mpHDCells->Identifier()).c_str ());
     }
+
+/*     if (mHeadDirection != mHeadDirectionPrev && mHeadDirection == mInitialHeading)
+ *         ROS_INFO("%s: Back at initial heading", mpHDCells->Identifier().c_str ());
+ */
 }		/* -----  end of method Bionavigator::HeadDirection  ----- */
 
 
@@ -482,13 +523,19 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
          */
         HeadDirection (rImuMessage->angular_velocity.z);
 
+        if (rImuMessage->angular_velocity.z > 0)
+            mPositive++;
+        else
+            mNegative++;
+
         /*
          * You have to add the data to the struct before you publish it
          */
         std_msgs::Float64 msg;
         msg.data = mHeadDirection;
         mHeadDirectionPublisher.publish(msg);
-
+/*         ROS_DEBUG("Angular velocity stats: [+%d,-%d]", mPositive, mNegative);
+ */
     }
 
 }		/* -----  end of method Bionavigator::CallbackPublishDirection  ----- */

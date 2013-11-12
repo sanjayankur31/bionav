@@ -80,7 +80,7 @@ RotationCellCounterClockwise::UpdateFiringRate (double angularVelocity )
      * Greater than 0 is clockwise for me
      */
     if (angularVelocity <= 0)
-        mFiringRate << (-5.00 * angularVelocity);
+        mFiringRate << (-1.00 * angularVelocity);
     else 
         mFiringRate << 0;
 

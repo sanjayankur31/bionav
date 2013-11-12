@@ -270,6 +270,30 @@ namespace Bionav {
                     ROS_WARN("%s: Force firing already enabled", mIdentifier.c_str ());
                 }
             }
+            /**
+             * @brief Enable maximum firing for all cells
+             *
+             * Needed in training
+             *
+             * @param value The value to set the firing rate to
+             *
+             * @return void
+             */
+            void EnableForceFire (double value )
+            {
+                if (mForceFiring == false)
+                {
+                    Init ();
+                    mFiringRate.array() += value;
+                    mFiringRateTrace.array() += value;
+                    mForceFiring = true;
+                    ROS_DEBUG("%s: Force firing enabled with magnitude %0.8f", mIdentifier.c_str (), value);
+                }
+                else 
+                {
+                    ROS_WARN("%s: Force firing already enabled", mIdentifier.c_str ());
+                }
+            }
 
             /**
              * @brief Disable all firing. Basically, re-init the cells

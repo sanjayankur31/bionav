@@ -285,7 +285,8 @@ namespace Bionav {
                 mWeightMatrix /= temp;
                 mWeightMatrix *= multiplier;
 
-                ROS_DEBUG("%s: rescaled to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
+/*                 ROS_DEBUG("%s: rescaled to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
+ */
             }
 
         protected:

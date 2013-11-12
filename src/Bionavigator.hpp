@@ -165,7 +165,10 @@ class Bionavigator
         bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
         bool mIsCalibrated;                     /**< Is the network calibrated */
         int mCount;                     /**< Keep a count of number of IMU messages we've processed */
+        int mPositive;
+        int mNegative;
         double mHeadDirection;             /**< The head direction */
+        double mHeadDirectionPrev;             /**< The head direction */
         double mInitialHeading;
         double mSigmaHD;
 
