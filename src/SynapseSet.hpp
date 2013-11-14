@@ -55,6 +55,7 @@ namespace Bionav {
                 mIsPlastic = false;
                 mIdentifier = std::string("SynapseSet");
                 mLearningRate = 0.01;
+                mDecayRate = 0.001;
             }
 
             ~SynapseSet () { ;}                             /**< destructor */
@@ -125,7 +126,8 @@ namespace Bionav {
                 {
                     mDeltaW.resize(mDimensionX, mDimensionY);
                     mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-                    mDeltaW = mLearningRate * preSynapticFiringRate * postSynapticFiringRate;
+                    mDeltaW = (mLearningRate * (1.0 - mWeightMatrix.array ()) * (preSynapticFiringRate * postSynapticFiringRate).array ()).matrix();
+                    mDeltaW -= (mDecayRate * mWeightMatrix.array()).matrix ();
 
                     mWeightMatrix += mDeltaW;
                     ROS_DEBUG("%s: Synaptic weight updated by [%f, %f]", mIdentifier.c_str (), mDeltaW.maxCoeff (), mDeltaW.minCoeff ());
@@ -296,6 +298,7 @@ namespace Bionav {
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mWeightMatrix;
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mDeltaW;
             double mLearningRate;
+            double mDecayRate;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
             double mDimensionX;            /**< X dimension */
