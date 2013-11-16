@@ -208,7 +208,7 @@ Bionavigator::Calibrate (  )
     /*  We set the preferred head directions uniformly */
     preferred_directions.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
     preferred_directions = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
-    for (double i = (1.0* 360.0/mpHDCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpHDCells->DimensionX ()), j++)
+    for (double i = 0, j = 0; j < mpHDCells->DimensionX (); i+=(360.0/mpHDCells->DimensionX ()), j++)
     {
         preferred_directions (j, 0) = i;
     }
