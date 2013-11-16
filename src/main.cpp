@@ -39,7 +39,7 @@ main ( int argc, char **argv )
     bionavigator->Calibrate ();
     bionavigator->SetInitialDirection ();
 
-    ros::spin();
+    //ros::spin();
 
 
     return 0;

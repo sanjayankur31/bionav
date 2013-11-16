@@ -21,6 +21,8 @@
 #define  NeuronSet_INC
 
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "ros/ros.h"
 #include <Eigen/Dense>
 
@@ -111,6 +113,41 @@ namespace Bionav {
              */
             double DimensionX () { return mDimensionX; }
 
+            /**
+             * @brief Print activation matrix to a file
+             *
+             * I need more ways of debugging the system really.
+             *
+             * @param fileName File to print to
+             *
+             * @return void
+             */
+            void PrintActivationToFile( std::string fileName)
+            {
+                std::ofstream my_file;
+                my_file.open(fileName.c_str (), std::ios_base::binary);
+
+                my_file << mActivation;
+                my_file.close ();
+            }
+
+            /**
+             * @brief Print firing matrix to a file
+             *
+             * I need more ways of debugging the system really.
+             *
+             * @param fileName File to print to
+             *
+             * @return void
+             */
+            void PrintFiringRateToFile( std::string fileName)
+            {
+                std::ofstream my_file;
+                my_file.open(fileName.c_str (), std::ios_base::binary);
+
+                my_file << mFiringRate;
+                my_file.close ();
+            }
 
             /* ====================  MUTATORS      ======================================= */
 

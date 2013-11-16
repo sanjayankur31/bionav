@@ -41,10 +41,10 @@ HDCells::HDCells ()
     mPhi0 = (double)(1.0 * mC_HD);
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
-    mPhi1 = (double)(1.0 * mC_HD_ROT);
+    mPhi1 = (double)(4.0 * mC_HD_ROT);
     mPhi2 = (double)(16.0 * mC_HD_V);
-    mAlpha = 0.0;
-    mBeta = 0.1;
+    mAlpha = 1.5;
+    mBeta = 3;
     mDeltaT = 0.0001;
 
 
@@ -151,7 +151,7 @@ HDCells::UpdateActivation (
         /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         */
 
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation);
+        temp_matrix = ((0.85 - mDeltaT/mTau) * mActivation);
 
         temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
         temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
@@ -159,15 +159,13 @@ HDCells::UpdateActivation (
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
     }
-/* 
- *     ROS_DEBUG("Recurrent term: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
- *     ROS_DEBUG("Vestibular term: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
- *     ROS_DEBUG("Vision term: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
- */
-      ROS_DEBUG("Firing rate term: [%f,%f]" , temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
-      ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
-  
 
+    ROS_DEBUG("%s: Recurrent term: [%f, %f]" , mIdentifier.c_str (), temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
+    ROS_DEBUG("%s: Vestibular term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
+    ROS_DEBUG("%s: Vision term: [%f,%f]" , mIdentifier.c_str (), temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
+
+    ROS_DEBUG("%s: Firing rate term: [%f,%f]" , mIdentifier.c_str (),temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+    ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
 }		/* -----  end of method HDCells::UpdateActivation  ----- */
 
 
@@ -228,22 +226,19 @@ HDCells::UpdateFiringRate ( )
  */
 /*     mFiringRate = (1*(((1 + (((mActivation.array () - mAlpha))*(-2 * mBeta))array().exp ()).array().inverse ()))).matrix ();
  */
-    temp_matrix1 = (-1.0 * mActivation.array ());
+    temp_matrix1 = -1.0 * mBeta * (mActivation.array () - mAlpha);
     temp_matrix2 = (temp_matrix1.array().exp ());
-    temp_matrix3 = (temp_matrix2.array() +1.0);
+    temp_matrix3 = (temp_matrix2.array() + 1.0);
     mFiringRate = temp_matrix3.array ().inverse ();
+
         
 
 /*     ROS_DEBUG("Firing term1: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
  *     ROS_DEBUG("Firing term2: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
  *     ROS_DEBUG("Firing term3: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
  */
-/*     ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
- */
+    ROS_DEBUG("Firing rate values: [%f, %f]", mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
 
-    //mFiringRate = (1+((-1*mActivation.array ()).array().exp ()).array()).inverse ().matrix ();
-/*     ROS_DEBUG("%s: Firing rate values: [%f, %f]", mIdentifier.c_str (),mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
- */
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
 
 

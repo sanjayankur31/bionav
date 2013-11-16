@@ -20,6 +20,8 @@
 #define  SynapseSet_INC
 
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "ros/ros.h"
 #include <Eigen/Dense>
 
@@ -55,7 +57,8 @@ namespace Bionav {
                 mIsPlastic = false;
                 mIdentifier = std::string("SynapseSet");
                 mLearningRate = 0.01;
-                mDecayRate = 0.001;
+                mDecayRate = 0.01;
+                mWeightBound = 0;
             }
 
             ~SynapseSet () { ;}                             /**< destructor */
@@ -107,6 +110,9 @@ namespace Bionav {
             inline Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> WeightMatrix () { return mWeightMatrix; }
             /* ====================  MUTATORS      ======================================= */
 
+            inline void SetBounding (double bounding) { mWeightBound = bounding; }
+            inline void SetDecay (double decay) {mDecayRate = decay; }
+
 
             /* ====================  OPERATORS     ======================================= */
             /*  pure virtual methods that must be overridden by extending
@@ -126,7 +132,7 @@ namespace Bionav {
                 {
                     mDeltaW.resize(mDimensionX, mDimensionY);
                     mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-                    mDeltaW = (mLearningRate * (1.0 - mWeightMatrix.array ()) * (preSynapticFiringRate * postSynapticFiringRate).array ()).matrix();
+                    mDeltaW = (mLearningRate * (1.0 - (mWeightBound * mWeightMatrix.array ())) * (preSynapticFiringRate * postSynapticFiringRate).array ()).matrix();
                     mDeltaW -= (mDecayRate * mWeightMatrix.array()).matrix ();
 
                     mWeightMatrix += mDeltaW;
@@ -291,6 +297,24 @@ namespace Bionav {
  */
             }
 
+            /**
+             * @brief Print to a file
+             *
+             * I need more ways of debugging the system really.
+             *
+             * @param fileName File to print to
+             *
+             * @return void
+             */
+            void PrintToFile( std::string fileName)
+            {
+                std::ofstream my_file;
+                my_file.open(fileName.c_str (), std::ios_base::binary);
+
+                my_file << mWeightMatrix;
+                my_file.close ();
+            }
+
         protected:
             /* ====================  METHODS       ======================================= */
 
@@ -299,6 +323,7 @@ namespace Bionav {
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mDeltaW;
             double mLearningRate;
             double mDecayRate;
+            double mWeightBound;
             bool mIsPlastic;                    /**< Is this synapse set plastic or fixed during the run? */
             std::string mIdentifier;            /**< A name for the synapse set */
             double mDimensionX;            /**< X dimension */
