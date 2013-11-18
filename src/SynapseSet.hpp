@@ -56,7 +56,7 @@ namespace Bionav {
                 /*  Default values for constants */
                 mIsPlastic = false;
                 mIdentifier = std::string("SynapseSet");
-                mLearningRate = 0.01;
+                mLearningRate = 0.5;
                 mDecayRate = 0.01;
                 mWeightBound = 0;
             }

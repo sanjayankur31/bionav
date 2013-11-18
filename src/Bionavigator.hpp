@@ -171,6 +171,7 @@ class Bionavigator
         double mHeadDirectionPrev;             /**< The head direction */
         double mInitialHeading;
         double mSigmaHD;
+        double mScale;                          /**< Scale the firing rate for calibration */
 
 }; /* -----  end of class Bionavigator  ----- */
 

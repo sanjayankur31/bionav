@@ -127,7 +127,7 @@ namespace Bionav {
                 std::ofstream my_file;
                 my_file.open(fileName.c_str (), std::ios_base::binary);
 
-                my_file << mActivation;
+                my_file << (100.0 * mActivation);
                 my_file.close ();
             }
 
@@ -145,7 +145,7 @@ namespace Bionav {
                 std::ofstream my_file;
                 my_file.open(fileName.c_str (), std::ios_base::binary);
 
-                my_file << mFiringRate;
+                my_file << (100 * mFiringRate);
                 my_file.close ();
             }
 
@@ -352,6 +352,7 @@ namespace Bionav {
                     ROS_WARN("%s: Force firing already disabled", mIdentifier.c_str ());
                 }
             }
+
         protected:
             /* ====================  METHODS       ======================================= */
 

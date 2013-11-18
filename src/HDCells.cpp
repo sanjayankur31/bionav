@@ -42,7 +42,7 @@ HDCells::HDCells ()
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
     mPhi1 = (double)(4.0 * mC_HD_ROT);
-    mPhi2 = (double)(16.0 * mC_HD_V);
+    mPhi2 = (double)(1.0 * mC_HD_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
@@ -151,7 +151,7 @@ HDCells::UpdateActivation (
         /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         */
 
-        temp_matrix = ((0.85 - mDeltaT/mTau) * mActivation);
+        temp_matrix = (1.0 * (1.0 - mDeltaT/mTau) * mActivation);
 
         temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
         temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
@@ -267,7 +267,8 @@ HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
     void
 HDCells::UpdateFiringRateTrace ( )
 {
-        mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace); /* rTrace^(HD)_i -> equation 7 */
+        //mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace); /* rTrace^(HD)_i -> equation 7 */
+        mFiringRateTrace = ((1.0 - mEta) * mFiringRate);
 }		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
 
 /*
