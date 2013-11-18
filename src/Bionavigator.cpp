@@ -184,14 +184,6 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
-    ROS_DEBUG("No decay, no bounding.");
-    mpHDSynapseSet->SetBounding(0.0);
-    mpHD_RotationCellClockwiseSynapseSet->SetBounding(0.0);
-    mpHD_RotationCellCounterClockwiseSynapseSet->SetBounding(0.0);
-    mpHDSynapseSet->SetDecay(0.0);
-    mpHD_RotationCellClockwiseSynapseSet->SetDecay(0.0);
-    mpHD_RotationCellCounterClockwiseSynapseSet->SetDecay(0.0);
-
     ROS_DEBUG("Calibrating system");
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
@@ -210,7 +202,7 @@ Bionavigator::Calibrate (  )
     /*  We set the preferred head directions uniformly */
     preferred_directions.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
     preferred_directions = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
-    for (double i = (360.0/mpHDCells->DimensionX ()), j = 0; j < mpHDCells->DimensionX (); i+=(360.0/mpHDCells->DimensionX ()), j++)
+    for (double i = (360.0/mpHDCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpHDCells->DimensionX ()), j++)
     {
         preferred_directions (j, 0) = i;
     }
@@ -222,7 +214,7 @@ Bionavigator::Calibrate (  )
 
     mpRotationCellCounterClockwise->EnableForceFire (firing_rate_for_training);
     mpRotationCellClockwise->DisableForceFire ();
-    for (int i=1; i < mpHDCells->DimensionX (); i++)
+    for (int i=1; i <= mpHDCells->DimensionX (); i++)
     {
         ROS_DEBUG("Counter Clockwise calibrtion iteration: %d",i);
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x;
@@ -334,13 +326,6 @@ Bionavigator::Calibrate (  )
     ROS_DEBUG("Calibration complete");
     mpHDSynapseSet->PrintToFile(std::string("Calibrated2-HD-synapse.txt"));
     mpHD_RotationCellClockwiseSynapseSet->PrintToFile(std::string("Calibrated2-HD-RotationCellClockwise-synapse.txt"));
-    mpHDSynapseSet->SetBounding(1.0);
-    mpHD_RotationCellClockwiseSynapseSet->SetBounding(1.0);
-    mpHD_RotationCellCounterClockwiseSynapseSet->SetBounding(1.0);
-    mpHDSynapseSet->SetDecay(0.02);
-    mpHD_RotationCellClockwiseSynapseSet->SetDecay(0.02);
-    mpHD_RotationCellCounterClockwiseSynapseSet->SetDecay(0.02);
-
 
 /*     if (mpHDSynapseSet->WeightMatrix() != mpHDSynapseSet->WeightMatrix ().transpose)
  *     {
