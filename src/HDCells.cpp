@@ -226,12 +226,18 @@ HDCells::UpdateFiringRate ( )
  */
 /*     mFiringRate = (1*(((1 + (((mActivation.array () - mAlpha))*(-2 * mBeta))array().exp ()).array().inverse ()))).matrix ();
  */
+
+    /*  Use alpha to ensure that my firing rate value is always between 0.5 and 1, even when Activation goes negative */
+    mAlpha = 0.0;
     temp_matrix1 = -1.0 * mBeta * (mActivation.array () - mAlpha);
     temp_matrix2 = (temp_matrix1.array().exp ());
     temp_matrix3 = (temp_matrix2.array() + 1.0);
     mFiringRate = temp_matrix3.array ().inverse ();
 
-        
+    /*  Keep it between 0 and 1 */
+/*     temp_matrix = (mFiringRate.array() - mFiringRate.minCoeff ()).matrix ();
+ *     mFiringRate = (temp_matrix.array ()/temp_matrix.maxCoeff ()).matrix ();
+ */
 
 /*     ROS_DEBUG("Firing term1: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
  *     ROS_DEBUG("Firing term2: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
@@ -252,7 +258,7 @@ HDCells::UpdateFiringRate ( )
     void
 HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS , double sigmaHD)
 {
-        mFiringRate = ((((deltaS.array ().abs2 () +1)/(2.0*sigmaHD * sigmaHD))* -1.0).exp ()).matrix (); /* r^(HD)_i -> equation 4 */
+    mFiringRate = ((((deltaS.array ().abs2 () +1)/(2.0*sigmaHD * sigmaHD))* -1.0).exp ()).matrix (); /* r^(HD)_i -> equation 4 */
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
 
 
@@ -267,8 +273,7 @@ HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
     void
 HDCells::UpdateFiringRateTrace ( )
 {
-        //mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace); /* rTrace^(HD)_i -> equation 7 */
-        mFiringRateTrace = ((1.0 - mEta) * mFiringRate);
+    mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace); /* rTrace^(HD)_i -> equation 7 */
 }		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
 
 /*

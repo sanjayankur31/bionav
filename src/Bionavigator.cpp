@@ -376,6 +376,7 @@ Bionavigator::SetInitialDirection ( )
     mpRotationCellCounterClockwise->DisableForceFire ();
     mpRotationCellClockwise->DisableForceFire ();
     mpHDCells->DisableForceFire ();
+    mpHDCells->Init ();
 
 //    delta_x = (preferred_directions.array () - mInitialHeading).abs ();
 //    threesixty_delta_x = (360 - delta_x.array ());
@@ -395,6 +396,9 @@ Bionavigator::SetInitialDirection ( )
      */
     mpHD_VisionSynapseSet->SetPlastic ();
     mpHD_VisionSynapseSet->AddToWeight((mpHDSynapseSet->WeightMatrix ()).col (((mInitialHeading * mpHDCells->DimensionX ())/360.0) -1.0).array ());
+    mpHD_VisionSynapseSet->PrintToFile(std::string("Before-Forced-vision-synapse.txt"));
+    mpHDCells->PrintFiringRateToFile(std::string("Before-Forced-HDCells-FiringRate.txt"));
+    mpHDCells->PrintActivationToFile(std::string("Before-Forced-HDCells-Activation.txt"));
     mpHD_VisionSynapseSet->Rescale (0.8);
     mpHD_VisionSynapseSet->SetStiff ();
     mpVisionCells->EnableForceFire ();
@@ -406,16 +410,27 @@ Bionavigator::SetInitialDirection ( )
     for (double i = 0; i < 5 ; i++ ) 
     {
 //        mpHDCells->UpdateActivation (initial_direction_matrix, mpHDSynapseSet->WeightMatrix ());
-
+        std::ostringstream ss;
+        ss << i;
+        
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
         mpHDCells->UpdateFiringRate ();
+        mpHDCells->UpdateFiringRateTrace ();
+        mpHDCells->PrintFiringRateToFile((std::string("Forced-HDCells-FiringRate-") + ss.str () + std::string(".txt")));
+        mpHDCells->PrintActivationToFile((std::string("Forced-HDCells-Activation-") + ss.str () + std::string(".txt")));
+
+/*         mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
+ *         mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+ *         mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+ */
     }
     mHeadDirection = mpHDCells->CurrentHeadDirection ();
     ROS_DEBUG("Head direction is now: %f",mHeadDirection);
-    mpHDCells->PrintFiringRateToFile(std::string("Forced-HDCells-FiringRate.txt"));
-    mpHDCells->PrintActivationToFile(std::string("Forced-HDCells-Activation.txt"));
-    mpHDSynapseSet->PrintToFile(std::string("Forced-HD-synapse.txt"));
-    mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Forced-HD-RotationCellCounterClockwise-synapse.txt"));
+/*     mpHDCells->PrintFiringRateToFile(std::string("Forced-HDCells-FiringRate.txt"));
+ *     mpHDCells->PrintActivationToFile(std::string("Forced-HDCells-Activation.txt"));
+ *     mpHDSynapseSet->PrintToFile(std::string("Forced-HD-synapse.txt"));
+ *     mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Forced-HD-RotationCellCounterClockwise-synapse.txt"));
+ */
     msg.data = mHeadDirection;
     mHeadDirectionPublisher.publish(msg);
     mpVisionCells->DisableForceFire ();
@@ -424,7 +439,7 @@ Bionavigator::SetInitialDirection ( )
      * Find a good number of loops for this
      */
     ROS_INFO("Stabilizing activity packet");
-    for (double j = 0; j < 100 ; j++) 
+    for (double j = 0; j < 50 ; j++) 
     {
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
 /*         mpHDCells->UpdateActivation ( Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ()), mpHDSynapseSet->WeightMatrix ());
