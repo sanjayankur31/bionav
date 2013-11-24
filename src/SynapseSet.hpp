@@ -56,9 +56,9 @@ namespace Bionav {
                 /*  Default values for constants */
                 mIsPlastic = false;
                 mIdentifier = std::string("SynapseSet");
-                mLearningRate = 0.5;
-                mDecayRate = 0.5;
-                mWeightBound = 0;
+                mLearningRate = 0.45;
+                mDecayRate = 0.015; 
+                mWeightBound = 1;
             }
 
             ~SynapseSet () { ;}                             /**< destructor */
@@ -130,15 +130,15 @@ namespace Bionav {
             {
                 if (mIsPlastic == true)
                 {
-                    mDecayRate = 0.1; 
+                    double firing_rate_minimum = 0.15;
                     mDeltaW.resize(mDimensionX, mDimensionY);
                     mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-                    mDeltaW = (mLearningRate * (1.0 - (mWeightBound * mWeightMatrix.array ())) * (((preSynapticFiringRate.array () - mDecayRate).matrix () * (postSynapticFiringRate.array () - mDecayRate).matrix()) - (0.01 * mWeightMatrix.array ()).matrix () ).array ()).matrix ();
+                    mDeltaW = (mLearningRate * (1.0 - (mWeightBound * mWeightMatrix.array ())) * (((preSynapticFiringRate.array () - firing_rate_minimum).matrix () * (postSynapticFiringRate.array () - firing_rate_minimum).matrix()) - (mDecayRate * mWeightMatrix.array ()).matrix () ).array ()).matrix ();
 
                     mWeightMatrix += mDeltaW;
-                    ROS_DEBUG("%s: Synaptic weight updated by [%f, %f]", mIdentifier.c_str (), mDeltaW.maxCoeff (), mDeltaW.minCoeff ());
-
-                    ROS_DEBUG("Decay rate set to %f", mDecayRate);
+                    ROS_DEBUG("%s: Synaptic weight updated by [%f, %f] to [%f,%f]", mIdentifier.c_str (), mDeltaW.maxCoeff (), mDeltaW.minCoeff (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
+/*                     ROS_DEBUG("Decay rate set to %f", mDecayRate);
+ */
                 }
                 else 
                 {

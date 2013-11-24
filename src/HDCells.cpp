@@ -38,7 +38,7 @@ HDCells::HDCells ()
     mC_HD_V = (double)(mDimensionX);
 /*     mPhi0 = (double)(23.0 * mC_HD);
  */
-    mPhi0 = (double)(1.0 * mC_HD);
+    mPhi0 = (double)(0.5 * mC_HD);
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
     mPhi1 = (double)(4.0 * mC_HD_ROT);
@@ -140,8 +140,7 @@ HDCells::UpdateActivation (
     temp_matrix3.resize(mDimensionX,mDimensionY);
     temp_matrix3 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
-    mDeltaT = 1.0/50;
-
+    mDeltaT = mTau/100.0;
     for (double i = 0; i < 1; i += mDeltaT ) {
 
         /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_HD_ROT) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
@@ -151,13 +150,19 @@ HDCells::UpdateActivation (
         /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         */
 
-        temp_matrix = (1.0 * (1.0 - mDeltaT/mTau) * mActivation);
+        /*  Introduce a leak variable here */
+        temp_matrix = (0.95000 * (1.0 - mDeltaT/mTau) * mActivation);
 
+        /*  Should inhibition rate be same for all neurons, or should it be
+         *  different for each neuron? */
         temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
         temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_HD_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
+
+        UpdateFiringRate ();
+        UpdateFiringRateTrace ();
     }
 
     ROS_DEBUG("%s: Recurrent term: [%f, %f]" , mIdentifier.c_str (), temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
@@ -234,6 +239,13 @@ HDCells::UpdateFiringRate ( )
     temp_matrix3 = (temp_matrix2.array() + 1.0);
     mFiringRate = temp_matrix3.array ().inverse ();
 
+    /*  Do not let firing rate be negative. Less than zero means no firing */
+    for (int i = 0; i < mDimensionX; i++)
+    {
+        if (mFiringRate(i,0) < 0)
+            mFiringRate(i,0) = 0;
+    }
+
     /*  Keep it between 0 and 1 */
 /*     temp_matrix = (mFiringRate.array() - mFiringRate.minCoeff ()).matrix ();
  *     mFiringRate = (temp_matrix.array ()/temp_matrix.maxCoeff ()).matrix ();
@@ -243,7 +255,6 @@ HDCells::UpdateFiringRate ( )
  *     ROS_DEBUG("Firing term2: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
  *     ROS_DEBUG("Firing term3: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
  */
-    ROS_DEBUG("Firing rate values: [%f, %f]", mFiringRate.maxCoeff (), mFiringRate.minCoeff ());
 
 }		/* -----  end of method HDCells::UpdateFiringRate  ----- */
 

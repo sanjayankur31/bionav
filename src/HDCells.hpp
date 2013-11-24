@@ -170,6 +170,11 @@ class HDCells: public Bionav::NeuronSet
          */
         void Init ();
 
+        void FiringRates () 
+        {
+            ROS_DEBUG("Firing rate values: [%f, %f]. Trace values: [%f,%f]", mFiringRate.maxCoeff (), mFiringRate.minCoeff (), mFiringRateTrace.maxCoeff (), mFiringRateTrace.minCoeff ());
+        }
+
         /* ====================  OPERATORS     ======================================= */
 
         HDCells& operator = ( const HDCells &other ); /* assignment operator */
