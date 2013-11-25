@@ -187,6 +187,7 @@ Bionavigator::Calibrate (  )
     ROS_DEBUG("Calibrating system");
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_hd_weights;
     const double PI  =3.141592653589793238462;
     double firing_rate_for_training = mScale * (2.0*PI)/mpHDCells->DimensionX ();
 
@@ -198,6 +199,9 @@ Bionavigator::Calibrate (  )
 
     delta_s.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
     delta_s = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
+
+    temp_hd_weights.resize(mpHDSynapseSet->DimensionX (), mpHDSynapseSet->DimensionY ());
+    temp_hd_weights = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDSynapseSet->DimensionX (), mpHDSynapseSet->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
 
     /*  We set the preferred head directions uniformly */
     preferred_directions.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
@@ -243,7 +247,7 @@ Bionavigator::Calibrate (  )
 
         /*  Pass transposed etc matrices. The update weight will only do simple
          *  multiplication. This is clearer */
-        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
 
         mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
 
@@ -255,9 +259,11 @@ Bionavigator::Calibrate (  )
 
     mpHDSynapseSet->PrintToFile(std::string("Calibrated1-HD-synapse.txt"));
     mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Calibrated1-HD-RotationCellCounterClockwise-synapse.txt"));
+    temp_hd_weights = mpHDSynapseSet->WeightMatrix ();
     /*
      * Clockwise
      */
+    mpHDSynapseSet->Init ();
     mpHDCells->Init ();
     mpRotationCellClockwise->EnableForceFire (firing_rate_for_training);
 /*     ROS_DEBUG_STREAM("" << mpRotationCellClockwise->Identifier ().c_str () << ": Firing rate is: " << mpRotationCellClockwise->FiringRate ());
@@ -288,19 +294,19 @@ Bionavigator::Calibrate (  )
         ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
         ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
 
-        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
 
         mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
 
         /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
     }
+    mpHDSynapseSet->PrintToFile(std::string("Calibrated2a-HD-synapse.txt"));
+    mpHDSynapseSet->AddToWeight(temp_hd_weights);
     ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellClockwiseSynapseSet->Max (), mpHD_RotationCellClockwiseSynapseSet->Min ());
-/*     mHDCannWeightMatrix *= (1.0/3.6);
- */
 
     /*  rescale  */
-/*     mpHDSynapseSet->Rescale (0.8);
+/*     
  *     mpHD_RotationCellClockwiseSynapseSet->Rescale (0.8);
  *     mpHD_RotationCellCounterClockwiseSynapseSet->Rescale (0.8);
  */
@@ -324,7 +330,8 @@ Bionavigator::Calibrate (  )
     mIsCalibrated = true;
 
     ROS_DEBUG("Calibration complete");
-    mpHDSynapseSet->PrintToFile(std::string("Calibrated2-HD-synapse.txt"));
+    mpHDSynapseSet->Rescale (temp_hd_weights.maxCoeff ());
+    mpHDSynapseSet->PrintToFile(std::string("Calibrated2b-HD-synapse.txt"));
     mpHD_RotationCellClockwiseSynapseSet->PrintToFile(std::string("Calibrated2-HD-RotationCellClockwise-synapse.txt"));
 
 /*     if (mpHDSynapseSet->WeightMatrix() != mpHDSynapseSet->WeightMatrix ().transpose)

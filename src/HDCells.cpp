@@ -46,6 +46,7 @@ HDCells::HDCells ()
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
+    mEta = 0.1;
 
 
 }  /* -----  end of method HDCells::HDCells  (constructor)  ----- */
