@@ -41,8 +41,8 @@ HDCells::HDCells ()
     mPhi0 = (double)(0.5 * mC_HD);
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
-    mPhi1 = (double)(4.0 * mC_HD_ROT);
-    mPhi2 = (double)(1.0 * mC_HD_V);
+    mPhi1 = (double)(0.05 * mC_HD_ROT);
+    mPhi2 = (double)(4.0 * mC_HD_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
@@ -156,7 +156,7 @@ HDCells::UpdateActivation (
 
         /*  Should inhibition rate be same for all neurons, or should it be
          *  different for each neuron? */
-        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate));
+        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
         temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_HD_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
 
@@ -247,9 +247,13 @@ HDCells::UpdateFiringRate ( )
             mFiringRate(i,0) = 0;
     }
 
+    /*  rescale to [0,1] */
+/*     temp_matrix = mFiringRate;
+ *     mFiringRate = (temp_matrix.array ()/temp_matrix.maxCoeff ()).matrix ();
+ */
+
     /*  Keep it between 0 and 1 */
 /*     temp_matrix = (mFiringRate.array() - mFiringRate.minCoeff ()).matrix ();
- *     mFiringRate = (temp_matrix.array ()/temp_matrix.maxCoeff ()).matrix ();
  */
 
 /*     ROS_DEBUG("Firing term1: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
@@ -285,7 +289,9 @@ HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
     void
 HDCells::UpdateFiringRateTrace ( )
 {
-    mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace); /* rTrace^(HD)_i -> equation 7 */
+/*     mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace);
+ */
+    mFiringRateTrace = ((1.0 - mEta) * mFiringRate); /* rTrace^(HD)_i -> equation 7 */
 }		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
 
 /*
@@ -307,6 +313,30 @@ HDCells::CurrentHeadDirection ( )
     for (int k = 0; k < mDimensionX; k +=1)
     {
         if (mFiringRate(k,0) == max_value)
+            return ((k+1) * mDirectionalRange);
+    }
+    return -1;
+}		/* -----  end of method HDCells::CurrentHeadDirection  ----- */
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  HDCells
+ *      Method:  HDCells :: CurrentHeadDirection
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    double
+HDCells::CurrentHeadDirection (double dummy)
+{
+    double max_value = mActivation.maxCoeff ();
+
+    /**
+     * @note Is there a better way of calculating this? Without iterating
+     * maybe?
+     */
+    for (int k = 0; k < mDimensionX; k +=1)
+    {
+        if (mActivation(k,0) == max_value)
             return ((k+1) * mDirectionalRange);
     }
     return -1;

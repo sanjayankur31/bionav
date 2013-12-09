@@ -34,6 +34,7 @@ doc/html
 tags
 # we don't care about vi swp files
 *.swp
+*.swo
 # we also don't care about emacs swap files
 *~
 .backup-*

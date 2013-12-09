@@ -130,6 +130,15 @@ class HDCells: public Bionav::NeuronSet
          * @return Current head direction of network
          */
         double CurrentHeadDirection ();
+        /**
+         * @brief Return the head direction of the network using activation
+         * values rather than firing rate values
+         *
+         * @param double dummy input to differentiate the two methods
+         *
+         * @return Current head direction of network
+         */
+        double CurrentHeadDirection (double dummy);
 
         /**
          * @brief Update the "directional range" of the system

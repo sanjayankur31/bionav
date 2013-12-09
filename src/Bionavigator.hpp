@@ -32,6 +32,7 @@
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/Float64.h"
 #include <sstream>
+#include <fstream>
 
 
 /*
@@ -166,6 +167,8 @@ class Bionavigator
         bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
         bool mIsCalibrated;                     /**< Is the network calibrated */
         int mCount;                     /**< Keep a count of number of IMU messages we've processed */
+        int mCountTillFreq;
+        int mProcessFreq;
         int mPositive;
         int mNegative;
         double mHeadDirection;             /**< The head direction */
@@ -173,6 +176,8 @@ class Bionavigator
         double mInitialHeading;
         double mSigmaHD;
         double mScale;                          /**< Scale the firing rate for calibration */
+        double* mpAngularVelocityArray;
+        std::ofstream mDebugFile;
 
 }; /* -----  end of class Bionavigator  ----- */
 
