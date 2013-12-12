@@ -147,18 +147,34 @@ namespace Bionav {
                     mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 /*                     mDeltaW = mWeightMatrix.array () / mWeightMatrix.norm ();
  */
-                    /*  Normalize each row individually */
-                    for (int i = 0; i < mWeightMatrix.rows (); i++)
-                    {
-                        mDeltaW.row (i) = mWeightMatrix.row (i)/mWeightMatrix.row (i).norm ();
-                    }
-                    mWeightMatrix = mDeltaW;
-                    ROS_DEBUG("%s: Synaptic weight normalized to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
                 }
                 else 
                 {
                     ROS_FATAL("%s: Unable to modify stiff synapses!", mIdentifier.c_str ());
                 }
+            }
+
+            /**
+             * @brief Normalize weights 
+             *
+             * Divide by norm to normalize. 
+             * Using this implies our learning rule is not local any more,
+             * since it depends on all neurons in the set for normalization
+             *
+             * @param None
+             *
+             * @return void
+             */
+            void Normalize (){
+                /*  Normalize each row individually */
+                for (int i = 0; i < mWeightMatrix.rows (); i++)
+                {
+                    mDeltaW.row (i) = mWeightMatrix.row (i)/mWeightMatrix.row (i).norm ();
+                }
+                mWeightMatrix = mDeltaW;
+                ROS_DEBUG("%s: Synaptic weight normalized to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
+
+
             }
 
             /**

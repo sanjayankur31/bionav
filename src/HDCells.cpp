@@ -38,7 +38,7 @@ HDCells::HDCells ()
     mC_HD_V = (double)(mDimensionX);
 /*     mPhi0 = (double)(23.0 * mC_HD);
  */
-    mPhi0 = (double)(0.5 * mC_HD);
+    mPhi0 = (double)(1.0 * mC_HD);
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
     mPhi1 = (double)(0.05 * mC_HD_ROT);
@@ -152,7 +152,7 @@ HDCells::UpdateActivation (
         */
 
         /*  Introduce a leak variable here */
-        temp_matrix = (0.95000 * (1.0 - mDeltaT/mTau) * mActivation);
+        temp_matrix = (1.00 * (1.0 - mDeltaT/mTau) * mActivation);
 
         /*  Should inhibition rate be same for all neurons, or should it be
          *  different for each neuron? */
