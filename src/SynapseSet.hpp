@@ -57,7 +57,7 @@ namespace Bionav {
                 mIsPlastic = false;
                 mIdentifier = std::string("SynapseSet");
                 mLearningRate = 1;
-                mDecayRate = 0.3; 
+                mDecayRate = 0.03; 
                 mWeightIsBound = 1;
             }
 
@@ -130,17 +130,30 @@ namespace Bionav {
             {
                 if (mIsPlastic == true)
                 {
-                    double firing_rate_minimum = 0.15;
                     mDeltaW.resize(mDimensionX, mDimensionY);
                     mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-/*                     mDeltaW = (mLearningRate * (1.0 - (mWeightIsBound * mWeightMatrix.array ())) * ((preSynapticFiringRate * (postSynapticFiringRate.array () - firing_rate_minimum).matrix()) - (mDecayRate * mWeightMatrix.array ()).matrix () ).array ()).matrix ();
+/*                     double firing_rate_minimum = 0.5 * (postSynapticFiringRate.maxCoeff () + postSynapticFiringRate.minCoeff ());
  */
-                    mDeltaW = (mLearningRate * ((preSynapticFiringRate * (postSynapticFiringRate.array () - firing_rate_minimum).matrix()) - (mDecayRate * mWeightMatrix.array ()).matrix () ).array ()).matrix ();
+/*                     mDeltaW = (mLearningRate * (1.0 - (mWeightIsBound * ((mWeightMatrix - mWeightMatrix.minCoeff ())/mWeightMatrix.maxCoeff ()).array ())) * ((preSynapticFiringRate * (postSynapticFiringRate.array () - firing_rate_minimum).matrix()) - (mDecayRate * mWeightMatrix.array ()).matrix () ).array ()).matrix ();
+ */
 
-                    mWeightMatrix += mDeltaW;
-                    ROS_DEBUG("%s: Synaptic weight updated by [%f, %f] to [%f,%f]", mIdentifier.c_str (), mDeltaW.maxCoeff (), mDeltaW.minCoeff (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
-/*                     ROS_DEBUG("Decay rate set to %f", mDecayRate);
+                    mDecayRate = 0;
+/*                     mDecayRate = (0.025 * preSynapticFiringRate.maxCoeff () * postSynapticFiringRate.maxCoeff ());
  */
+                    ROS_DEBUG ("Decay rate set to: %f",mDecayRate);
+                    mDeltaW = (mLearningRate * ((preSynapticFiringRate * postSynapticFiringRate).array () - mDecayRate)). matrix ();
+                    mWeightMatrix += mDeltaW;
+                    ROS_DEBUG("%s: Synaptic weight updated by [%f, %f]", mIdentifier.c_str (), mDeltaW.maxCoeff (), mDeltaW.minCoeff ());
+                    mDeltaW = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+/*                     mDeltaW = mWeightMatrix.array () / mWeightMatrix.norm ();
+ */
+                    /*  Normalize each row individually */
+                    for (int i = 0; i < mWeightMatrix.rows (); i++)
+                    {
+                        mDeltaW.row (i) = mWeightMatrix.row (i)/mWeightMatrix.row (i).norm ();
+                    }
+                    mWeightMatrix = mDeltaW;
+                    ROS_DEBUG("%s: Synaptic weight normalized to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
                 }
                 else 
                 {
