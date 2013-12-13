@@ -20,6 +20,8 @@
 #
 
 sed -n "50 p" Calibrated-HD-synapse-final.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated-HD-synapse-final-50-row.txt
-sed -n "50 p" Calibrated2-HD-synapse.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated2-HD-synapse-50-row.txt
-sed -n "50 p" Calibrated1-HD-synapse.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated1-HD-synapse-50-row.txt
+sed -n "50 p" Calibrated-HD-synapse-1.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated-HD-synapse-1-50.txt
+sed -n "50 p" Calibrated-HD-synapse-2.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated-HD-synapse-2-50.txt
+sed -n "50 p" Calibrated-RotationCellCounterClockwise-synapse.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated-RotationCellCounterClockwise-synapse-cell50.txt
+sed -n "50 p" Calibrated-RotationCellClockwise-synapse.txt | tr ' ' '\n'  | sed "/^$/d" > Calibrated-RotationCellClockwise-synapse-cell50.txt
 cut -f 2 0000-Master-debug.txt > 0000-Master-debug-HD.txt; cut -f 4 0000-Master-debug.txt > 0000-Master-debug-FR1.txt; cut -f 5 0000-Master-debug.txt > 0000-Master-debug-FR2.txt

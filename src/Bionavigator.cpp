@@ -248,20 +248,24 @@ Bionavigator::Calibrate (  )
         threesixty_delta_x = (360 - delta_x.array ());
 
         delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
-        ROS_DEBUG_STREAM("delta_s is:" << delta_s.transpose ());
+/*         ROS_DEBUG_STREAM("delta_s is:" << delta_s.transpose ());
+ */
 
 
-        /*  For rotation cell connections only! */
+        /*  Calculate firing rate for this iteration */
         mpHDCells->UpdateFiringRate(delta_s, mSigmaHD);
+        /*  Head directions train: what they should be for this firing rate */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate(), mpHDCells->FiringRate ().transpose ());
+
+        /*  Rotation cells train: the firing of rotation cells changes head
+         *  direction firing from trace (previous) to new */
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+
+        /*  Activate trace. This will hold f(t-1) always */
         mpHDCells->UpdateFiringRateTrace ();
+
         ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
         ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
-
-        /*  Pass transposed etc matrices. The update weight will only do simple
-         *  multiplication. This is clearer */
-        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
-
-        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
 
         /*  Clockwise calibration not needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
@@ -269,9 +273,12 @@ Bionavigator::Calibrate (  )
     mpRotationCellCounterClockwise->DisableForceFire ();
     ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellCounterClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellCounterClockwiseSynapseSet->Max (), mpHD_RotationCellCounterClockwiseSynapseSet->Min ());
 
-    mpHDSynapseSet->Normalize ();
-    mpHDSynapseSet->PrintToFile(std::string("Calibrated1-HD-synapse.txt"));
-    mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Calibrated1-HD-RotationCellCounterClockwise-synapse.txt"));
+/*     mpHDSynapseSet->Normalize ();
+ */
+    mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-1.txt"));
+/*     mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
+ */
+    mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Calibrated-RotationCellCounterClockwise-synapse.txt"));
     temp_hd_weights = mpHDSynapseSet->WeightMatrix ();
 
     /*
@@ -301,34 +308,37 @@ Bionavigator::Calibrate (  )
         threesixty_delta_x = (360 - delta_x.array ());
 
         delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
-        ROS_DEBUG_STREAM("delta_s is:" << delta_s.transpose ());
+/*         ROS_DEBUG_STREAM("delta_s is:" << delta_s.transpose ());
+ */
 
-        /*  For rotation cell connections only! */
+        /*  Calculate firing rate for this iteration */
         mpHDCells->UpdateFiringRate(delta_s, mSigmaHD);
+        /*  Head directions train: what they should be for this firing rate */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate(), mpHDCells->FiringRate ().transpose ());
+
+        /*  Rotation cells train: the firing of rotation cells changes head
+         *  direction firing from trace (previous) to new */
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+
+        /*  Activate trace. This will hold f(t-1) always */
         mpHDCells->UpdateFiringRateTrace ();
+
         ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
         ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
-
-        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
-
-        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
 
         /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
     }
-    mpHDSynapseSet->Normalize ();
-    mpHDSynapseSet->PrintToFile(std::string("Calibrated2-HD-synapse.txt"));
+/*     mpHDSynapseSet->Normalize ();
+ */
+    mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-2.txt"));
     mpHDSynapseSet->AddToWeight(temp_hd_weights);
 
-    ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellClockwiseSynapseSet->Max (), mpHD_RotationCellClockwiseSynapseSet->Min ());
-
-    /*  rescale  */
-/*     
- *     mpHD_RotationCellClockwiseSynapseSet->Rescale (0.8);
- *     mpHD_RotationCellCounterClockwiseSynapseSet->Rescale (0.8);
+/*     mpHD_RotationCellClockwiseSynapseSet->Normalize ();
  */
+    mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-final.txt"));
 
-    /*  WHY RESCALE? */
+    ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellClockwiseSynapseSet->Max (), mpHD_RotationCellClockwiseSynapseSet->Min ());
 
     /*  Set the inhibition rate */
     //mpHDCells->InhibitionRate (0.2 * mpHDSynapseSet->WeightMatrix ().maxCoeff ());
@@ -344,27 +354,15 @@ Bionavigator::Calibrate (  )
  *     mpHD_RotationCellClockwiseSynapseSet->SetStiff ();
  *     mpHD_RotationCellCounterClockwiseSynapseSet->SetStiff ();
  */
-    mpHDSynapseSet->Normalize ();
-    mpHD_RotationCellClockwiseSynapseSet->Normalize ();
-    mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
-    mIsCalibrated = true;
-
-    ROS_DEBUG("Calibration complete");
-/*     mpHDSynapseSet->Rescale (temp_hd_weights.maxCoeff ());
- */
-    mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-final.txt"));
-    mpHD_RotationCellClockwiseSynapseSet->PrintToFile(std::string("Calibrated-HD-RotationCellClockwise-synapse-final.txt"));
+    mpHD_RotationCellClockwiseSynapseSet->PrintToFile(std::string("Calibrated-RotationCellClockwise-synapse.txt"));
 
     /*  Switch to LTP/D */
-    mpHDSynapseSet->LearningRate (0.5);
-    mpHD_RotationCellClockwiseSynapseSet->LearningRate (0.5);
-    mpHD_RotationCellCounterClockwiseSynapseSet->LearningRate(0.5);
+    mpHDSynapseSet->LearningRate (0.00);
+    mpHD_RotationCellClockwiseSynapseSet->LearningRate (0.0);
+    mpHD_RotationCellCounterClockwiseSynapseSet->LearningRate(0.0);
 
-/*     if (mpHDSynapseSet->WeightMatrix() != mpHDSynapseSet->WeightMatrix ().transpose)
- *     {
- *         ROS_WARN("Isn't the matrix supposed to be a uniform square matrix?");
- *     }
- */
+    mIsCalibrated = true;
+    ROS_DEBUG("Calibration complete");
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
 /*
@@ -455,19 +453,20 @@ Bionavigator::SetInitialDirection ( )
 
 /*         mpHDCells->InhibitionRate ((0.05 *mpHDSynapseSet->WeightMatrix().maxCoeff ()));
  */
-        mpHDCells->InhibitionRate (0.1);
+        mpHDCells->InhibitionRate (0.2);
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
         mpHDCells->FiringRates ();
-/*         mpHDCells->UpdateFiringRate ();
- *         mpHDCells->UpdateFiringRateTrace ();
- */
+
         mpHDCells->PrintFiringRateToFile((std::string("Forced-HDCells-FiringRate-") + ss.str () + std::string(".txt")));
         mpHDCells->PrintActivationToFile((std::string("Forced-HDCells-Activation-") + ss.str () + std::string(".txt")));
 
-/*         mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
- *         mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
- *         mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
- */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+        mpHDSynapseSet->Normalize ();
+        mpHD_RotationCellClockwiseSynapseSet->Normalize ();
+        mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
+
     }
     mHeadDirection = mpHDCells->CurrentHeadDirection ();
     ROS_DEBUG("Head direction is now: %f",mHeadDirection);
@@ -484,9 +483,9 @@ Bionavigator::SetInitialDirection ( )
      * Find a good number of loops for this
      */
     ROS_INFO("Stabilizing activity packet");
-    for (int j = 0; j < 50 ; j++) 
+    for (int j = 0; j < 200 ; j++) 
     {
-        mpHDCells->InhibitionRate (0.1);
+        mpHDCells->InhibitionRate (0.2);
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
         mpHDCells->UpdateFiringRate ();
         mpHDCells->UpdateFiringRateTrace ();
@@ -496,15 +495,13 @@ Bionavigator::SetInitialDirection ( )
         ROS_DEBUG("Head direction is now: %f",mHeadDirection);
 
         /*  Learning still occurs! */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+        mpHDSynapseSet->Normalize ();
+        mpHD_RotationCellClockwiseSynapseSet->Normalize ();
+        mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
 
-        /* Pre synaptic firing should be slightly less than post synaptic
-         * firing since it's slightly decayed by now, for learning to occur as
-         * per hebb's learning rule
-         */
-/*         mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
- *         mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
- *         mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
- */
 
         ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
 /*         msg.data = mHeadDirection;
@@ -544,7 +541,7 @@ Bionavigator::HeadDirection (double angularVelocityZ )
 {
 /*     ROS_DEBUG("Angular velocity received: %f",angularVelocityZ);
  */
-    mpHDCells->InhibitionRate (0.1);
+    mpHDCells->InhibitionRate (0.2);
     mpRotationCellClockwise->UpdateFiringRate (angularVelocityZ);
     mpRotationCellCounterClockwise->UpdateFiringRate (angularVelocityZ);
 
