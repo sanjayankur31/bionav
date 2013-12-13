@@ -232,6 +232,9 @@ Bionavigator::Calibrate (  )
     mpRotationCellClockwise->DisableForceFire ();
     for (int i=1; i <= mpHDCells->DimensionX (); i++)
     {
+        std::ostringstream ss;
+        ss << i;
+
         ROS_DEBUG("Counter Clockwise calibrtion iteration: %d",i);
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x;
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> threesixty_delta_x;
@@ -264,8 +267,12 @@ Bionavigator::Calibrate (  )
         /*  Activate trace. This will hold f(t-1) always */
         mpHDCells->UpdateFiringRateTrace ();
 
-        ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
-        ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
+/*         ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
+ *         ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
+ */
+        mpHDCells->PrintFiringRateToFile((std::string("Calibrating-HDCells-FiringRate-1-") + ss.str () + std::string(".txt")));
+        mpHDSynapseSet->PrintToFile((std::string("Calibrating-HD-synapse-1-") + ss.str () + std::string(".txt")));
+        mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile((std::string("Calibrating-RotationCellCounterClockwise-synapse-") + ss.str () + std::string(".txt")));
 
         /*  Clockwise calibration not needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
@@ -292,6 +299,9 @@ Bionavigator::Calibrate (  )
  */
     for (int i = mpHDCells->DimensionX (); i >= 1 ; i--)
     {
+        std::ostringstream ss;
+        ss << mpHDCells->DimensionX () - i;
+
         ROS_DEBUG("Clockwise calibrtion iteration: %d",i);
         Eigen::Matrix<double, Eigen::Dynamic, 1> delta_x;
         Eigen::Matrix<double, Eigen::Dynamic, 1> threesixty_delta_x;
@@ -323,8 +333,13 @@ Bionavigator::Calibrate (  )
         /*  Activate trace. This will hold f(t-1) always */
         mpHDCells->UpdateFiringRateTrace ();
 
-        ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
-        ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
+        mpHDCells->PrintFiringRateToFile((std::string("Calibrating-HDCells-FiringRate-2-") + ss.str () + std::string(".txt")));
+        mpHDSynapseSet->PrintToFile((std::string("Calibrating-HD-synapse-2-") + ss.str () + std::string(".txt")));
+        mpHD_RotationCellClockwiseSynapseSet->PrintToFile((std::string("Calibrating-RotationCellClockwise-synapse-") + ss.str () + std::string(".txt")));
+
+/*         ROS_DEBUG("Firing rate values are [%f,%f]",mpHDCells->FiringRate().maxCoeff (), mpHDCells->FiringRate().minCoeff ());
+ *         ROS_DEBUG("Firing rate trace values are [%f,%f]",mpHDCells->FiringRateTrace().maxCoeff (), mpHDCells->FiringRateTrace().minCoeff ());
+ */
 
         /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */

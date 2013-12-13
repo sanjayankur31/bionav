@@ -70,7 +70,7 @@ namespace Bionav {
                  *
                 */
                 mIdentifier = std::string("NeuronSet");
-                mEta = 0.5;
+                mEta = 0.1;
 
             }
 
