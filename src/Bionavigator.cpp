@@ -451,6 +451,7 @@ Bionavigator::SetInitialDirection ( )
  */
     mpHD_VisionSynapseSet->AddToWeight(initial_direction_matrix.array ());
     mpHD_VisionSynapseSet->PrintToFile(std::string("Before-Forced-vision-synapse.txt"));
+    mpHD_VisionSynapseSet->Normalize ();
     mpHDCells->PrintFiringRateToFile(std::string("Before-Forced-HDCells-FiringRate.txt"));
     mpHDCells->PrintActivationToFile(std::string("Before-Forced-HDCells-Activation.txt"));
     mpHD_VisionSynapseSet->SetStiff ();
@@ -625,30 +626,32 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
     /*  Only process every fifth packet. 
      *  This needs to be tinkered with and optimised
      */
-    mpAngularVelocityArray[mCountTillFreq] = rImuMessage->angular_velocity.z;
-    mCount++;
-    mCountTillFreq++;
-    if (mCountTillFreq  == mProcessFreq)
-    {
-        mCountTillFreq = 0;
-
-        for (int i = 0; i< mProcessFreq; i++)
-        {
-            /*  use and clear */
-            angular_velocity += mpAngularVelocityArray[i];
-            mpAngularVelocityArray[i] = 0.0;
-        }
-        angular_velocity /= (1.0 * mProcessFreq);
+/*     mpAngularVelocityArray[mCountTillFreq] = rImuMessage->angular_velocity.z;
+ *     mCount++;
+ *     mCountTillFreq++;
+ *     if (mCountTillFreq  == mProcessFreq)
+ *     {
+ *         mCountTillFreq = 0;
+ * 
+ *         for (int i = 0; i< mProcessFreq; i++)
+ *         {
+ *             angular_velocity += mpAngularVelocityArray[i];
+ *             mpAngularVelocityArray[i] = 0.0;
+ *         }
+ *         angular_velocity /= (1.0 * mProcessFreq);
+ */
         /*
          * Calculate the new head direction
          */
-/*         HeadDirection (rImuMessage->angular_velocity.z);
- */
-        HeadDirection (angular_velocity);
+    mCount++;
+    if (mCount%mProcessFreq ==0)
+    {
+        HeadDirection (rImuMessage->angular_velocity.z);
 
-/*         if (rImuMessage->angular_velocity.z > 0)
- */
-        if (angular_velocity> 0)
+        //HeadDirection (angular_velocity);
+
+        if (rImuMessage->angular_velocity.z > 0)
+       // if (angular_velocity> 0)
             mPositive++;
         else
             mNegative++;

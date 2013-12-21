@@ -324,7 +324,7 @@ namespace Bionav {
                     mFiringRate.array() += value;
                     mFiringRateTrace.array() += value;
                     mForceFiring = true;
-                    ROS_DEBUG("%s: Force firing enabled with magnitude %0.8f", mIdentifier.c_str (), value);
+                    ROS_INFO("%s: Force firing enabled with magnitude %0.8f", mIdentifier.c_str (), value);
                 }
                 else 
                 {
@@ -345,10 +345,11 @@ namespace Bionav {
                 {
                     Init ();
                     mForceFiring = false;
-                    ROS_DEBUG("%s: Force firing disabled", mIdentifier.c_str ());
+                    ROS_INFO("%s: Force firing disabled", mIdentifier.c_str ());
                 }
                 else 
                 {
+                    Init ();
                     ROS_WARN("%s: Force firing already disabled", mIdentifier.c_str ());
                 }
             }

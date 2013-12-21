@@ -41,8 +41,8 @@ HDCells::HDCells ()
     mPhi0 = (double)(1.0 * mC_HD);
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
-    mPhi1 = (double)(0.05 * mC_HD_ROT);
-    mPhi2 = (double)(4.0 * mC_HD_V);
+    mPhi1 = (double)(1.0 * mC_HD_ROT);
+    mPhi2 = (double)(1.0 * mC_HD_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
@@ -157,7 +157,7 @@ HDCells::UpdateActivation (
         /*  Should inhibition rate be same for all neurons, or should it be
          *  different for each neuron? */
         temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
-        temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+        temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*(((((clockwiseRotationCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + (((counterClockwiseRotationCellSynapses .array () - mInhibitionRate).matrix () * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_HD_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;

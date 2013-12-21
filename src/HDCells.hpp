@@ -181,7 +181,7 @@ class HDCells: public Bionav::NeuronSet
 
         void FiringRates () 
         {
-            ROS_DEBUG("Firing rate values: [%f, %f]. Trace values: [%f,%f]", mFiringRate.maxCoeff (), mFiringRate.minCoeff (), mFiringRateTrace.maxCoeff (), mFiringRateTrace.minCoeff ());
+            ROS_DEBUG("%s: Firing rate values: [%f, %f]. Trace values: [%f,%f]", mIdentifier.c_str(), mFiringRate.maxCoeff (), mFiringRate.minCoeff (), mFiringRateTrace.maxCoeff (), mFiringRateTrace.minCoeff ());
         }
 
         /* ====================  OPERATORS     ======================================= */
