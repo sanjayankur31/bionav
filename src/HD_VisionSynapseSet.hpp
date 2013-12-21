@@ -53,6 +53,22 @@ class HD_VisionSynapseSet: public Bionav::SynapseSet
 
         HD_VisionSynapseSet& operator = ( const HD_VisionSynapseSet &other ); /* assignment operator */
 
+        /**
+         * @brief Normalize weights 
+         *
+         * A special implementation for this synapse set since it's not a matrix, just
+         * a vector really.
+         *
+         * Divide by norm to normalize. 
+         * Using this implies our learning rule is not local any more,
+         * since it depends on all neurons in the set for normalization
+         *
+         * @param None
+         *
+         * @return void
+         */
+        void Normalize ();
+
     protected:
         /* ====================  METHODS       ======================================= */
 

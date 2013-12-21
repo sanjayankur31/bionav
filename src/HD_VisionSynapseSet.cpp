@@ -68,3 +68,19 @@ HD_VisionSynapseSet::operator = ( const HD_VisionSynapseSet &other )
     return *this;
 }  /* -----  end of method HD_VisionSynapseSet::operator =  (assignment operator)  ----- */
 
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  HD_VisionSynapseSet
+ *      Method:  HD_VisionSynapseSet :: Normalize
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+void 
+HD_VisionSynapseSet::Normalize (){
+    /*  Normalize each row individually */
+    mDeltaW = mWeightMatrix/mWeightMatrix.norm ();
+    mWeightMatrix = mDeltaW;
+    ROS_DEBUG("%s: Synaptic weight normalized to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
+}/* -----  end of method HD_VisionSynapseSet::Normalize  ----- */
+
