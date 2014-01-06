@@ -94,11 +94,23 @@ class Bionavigator
          * Basically, create a peak and let it stabilize so we can begin to
          * process angular velocity inputs.
          *
-         * @param None
+         * @param debugPrefix A prefix to add to the generated files
          *
          * @return void
          */
-        void SetInitialDirection ();
+        void SetInitialDirection (std::string debugPrefix = "01-");
+
+        /**
+         * @brief Set a new heading using visual cues
+         * 
+         * This just changes the value of mInitialHeading and recalls
+         * SetInitialDirection
+         *
+         * @param newHeading The new heading to be set
+         *
+         * @returns void
+         */
+        void SetNewDirection(double newHeading);
 
         /**
          * @brief Publish current direction
