@@ -439,6 +439,7 @@ Bionavigator::SetInitialDirection (std::string debugPrefix )
      * This will ensure a peak at the preferred direction.
      */
     mpHD_VisionSynapseSet->SetPlastic ();
+    mpHD_VisionSynapseSet->Init ();
 /*     initial_direction_matrix = (mpHDSynapseSet->WeightMatrix ()).row (((mInitialHeading * mpHDCells->DimensionX ())/360.0) -1.0).transpose ();
  */
     initial_direction_matrix = (mpHDSynapseSet->WeightMatrix ()).col (((mInitialHeading * mpHDCells->DimensionX ())/360.0));
@@ -447,7 +448,8 @@ Bionavigator::SetInitialDirection (std::string debugPrefix )
 /*     initial_direction_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
  *     initial_direction_matrix(49,0) = 10;
  */
-    mpHD_VisionSynapseSet->AddToWeight(initial_direction_matrix.array ());
+/*     mpHD_VisionSynapseSet->AddToWeight(initial_direction_matrix.array ());
+ */
     mpHD_VisionSynapseSet->PrintToFile((debugPrefix + std::string("Before-Forced-vision-synapse.txt")));
     mpHD_VisionSynapseSet->Normalize ();
     mpHDCells->PrintFiringRateToFile((debugPrefix + std::string("Before-Forced-HDCells-FiringRate.txt")));
@@ -710,9 +712,112 @@ Bionavigator::RosInit ( )
  *--------------------------------------------------------------------------------------
  */
     void
-Bionavigator::SetNewDirection ( double newHeading )
+Bionavigator::SetNewDirection ( double newHeading, double time )
 {
     mInitialHeading = newHeading;
-    SetInitialDirection ((std::to_string(newHeading) + "-"));
+    std::string debug_prefix = ((std::to_string(newHeading) + "-"));
+    ROS_INFO("%s Setting initial reference direction to %f", debug_prefix.c_str (), mInitialHeading);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initial_direction_matrix; /**< @f$I^{V}_i@f$  */
+
+    /*  For the message to be published */
+    std_msgs::Float64 msg;
+    initial_direction_matrix.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+
+    /*
+     * Set the synaptic weights of the vision head synapses to the weights
+     * learned during training for the cann recurrent network.
+     *
+     * This will ensure a peak at the preferred direction.
+     */
+    mpHD_VisionSynapseSet->SetPlastic ();
+    mpHD_VisionSynapseSet->Init ();
+    initial_direction_matrix = (mpHDSynapseSet->WeightMatrix ()).col (((mInitialHeading * mpHDCells->DimensionX ())/360.0));
+    mpHD_VisionSynapseSet->AddToWeight((initial_direction_matrix.array ()/initial_direction_matrix.maxCoeff ()).matrix());
+
+/*     initial_direction_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
+ *     initial_direction_matrix(49,0) = 10;
+ */
+/*     mpHD_VisionSynapseSet->AddToWeight(initial_direction_matrix.array ());
+ */
+    mpHD_VisionSynapseSet->PrintToFile((debug_prefix + std::string("Before-Forced-vision-synapse.txt")));
+    mpHD_VisionSynapseSet->Normalize ();
+    mpHDCells->PrintFiringRateToFile((debug_prefix + std::string("Before-Forced-HDCells-FiringRate.txt")));
+    mpHDCells->PrintActivationToFile((debug_prefix + std::string("Before-Forced-HDCells-Activation.txt")));
+    mpHD_VisionSynapseSet->SetStiff ();
+    mpVisionCells->EnableForceFire (1.0);
+
+    /*
+     * Find a good number of iterations. Optimize it.
+     */
+    ROS_INFO("%s Forcing an initial direction to %f", debug_prefix.c_str (), mInitialHeading);
+    for (double i = 0; i < time ; i++ ) 
+    {
+//        mpHDCells->UpdateActivation (initial_direction_matrix, mpHDSynapseSet->WeightMatrix ());
+        std::ostringstream ss;
+        ss << i;
+
+/*         mpHDCells->InhibitionRate ((0.05 *mpHDSynapseSet->WeightMatrix().maxCoeff ()));
+ */
+        mpHDCells->InhibitionRate (0.2);
+        mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
+        mpHDCells->FiringRates ();
+
+        mpHDCells->PrintFiringRateToFile((debug_prefix + std::string("Forced-HDCells-FiringRate-") + ss.str () + std::string(".txt")));
+        mpHDCells->PrintActivationToFile((debug_prefix + std::string("Forced-HDCells-Activation-") + ss.str () + std::string(".txt")));
+
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+        mpHDSynapseSet->Normalize ();
+        mpHD_RotationCellClockwiseSynapseSet->Normalize ();
+        mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
+
+    }
+    mHeadDirection = mpHDCells->CurrentHeadDirection ();
+    ROS_DEBUG("%s Head direction is now: %f", debug_prefix.c_str(), mHeadDirection);
+/*     mpHDCells->PrintFiringRateToFile(std::string("Forced-HDCells-FiringRate.txt"));
+ *     mpHDCells->PrintActivationToFile(std::string("Forced-HDCells-Activation.txt"));
+ *     mpHDSynapseSet->PrintToFile(std::string("Forced-HD-synapse.txt"));
+ *     mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Forced-HD-RotationCellCounterClockwise-synapse.txt"));
+ */
+    msg.data = mHeadDirection;
+    mHeadDirectionPublisher.publish(msg);
+    mpVisionCells->DisableForceFire ();
+
+    ROS_INFO("%s Stabilizing activity packet", debug_prefix.c_str ());
+    for (int j = 0; j < 200 ; j++) 
+    {
+        mpHDCells->InhibitionRate (0.2);
+        mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
+        mpHDCells->UpdateFiringRate ();
+        mpHDCells->UpdateFiringRateTrace ();
+        mpHDCells->FiringRates ();
+
+        mHeadDirection = mpHDCells->CurrentHeadDirection ();
+        ROS_DEBUG("%s Head direction is now: %f", debug_prefix.c_str(), mHeadDirection);
+
+        /*  Learning still occurs! */
+        mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRateTrace (), mpHDCells->FiringRate ().transpose ());
+        mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+        mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+        mpHDSynapseSet->Normalize ();
+        mpHD_RotationCellClockwiseSynapseSet->Normalize ();
+        mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
+
+
+        ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
+/*         msg.data = mHeadDirection;
+ *         mHeadDirectionPublisher.publish(msg);
+ */
+        if((j == 0 ) || (j%10 == 9))
+        {
+            std::ostringstream ss;
+            ss << j;
+            mpHDCells->PrintFiringRateToFile((debug_prefix + std::string("Stabilized-HDCells-FiringRate-") + ss.str () + std::string(".txt")));
+            mpHDCells->PrintActivationToFile((debug_prefix + std::string("Stabilized-HDCells-Activation-") + ss.str () + std::string(".txt")));
+/*             mpHDSynapseSet->PrintToFile(std::string("Stabilized-HD-synapse.txt"));
+ */
+        }
+    }
 }		/* -----  end of method Bionavigator::SetNewDirection  ----- */
 

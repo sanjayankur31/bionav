@@ -110,7 +110,7 @@ class Bionavigator
          *
          * @returns void
          */
-        void SetNewDirection(double newHeading);
+        void SetNewDirection(double newHeading, double time );
 
         /**
          * @brief Publish current direction
