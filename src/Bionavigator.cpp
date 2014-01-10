@@ -193,7 +193,151 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
-    ROS_DEBUG("Calibrating system");
+    CalibrateHDSet ();
+    CalibratePlaceCellSet ();
+}		/* -----  end of method Bionavigator::Calibrate  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: CalibratePlaceCellSet
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::CalibratePlaceCellSet (  )
+{
+    ROS_DEBUG("Calibrating Place Cell system");
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_hd_weights;
+    const double PI  =3.141592653589793238462;
+    double firing_rate_for_training;
+/*     firing_rate_for_training = mScale * (2.0*PI)/mpPlaceCells->DimensionX ();
+ */
+
+    firing_rate_for_training = 1;
+    /*  Ensure all synapses are plastic here */
+    mpPlaceCellsSynapseSet->SetPlastic ();
+    mpPlaceCells_VelocitySynapseSet->SetPlastic ();
+    mpHD_RotationCellCounterClockwiseSynapseSet->SetPlastic ();
+
+
+    delta_s.resize(mpPlaceCells->DimensionX (), mpPlaceCells->DimensionY ());
+    delta_s = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpPlaceCells->DimensionX (), mpPlaceCells->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
+
+    temp_hd_weights.resize(mpPlaceCellsSynapseSet->DimensionX (), mpPlaceCellsSynapseSet->DimensionY ());
+    temp_hd_weights = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpPlaceCellsSynapseSet->DimensionX (), mpPlaceCellsSynapseSet->DimensionY ());           /* s^(HD)_i: difference between actual head direction and preferred head direction */
+
+    /*  We set the preferred head directions uniformly */
+    preferred_directions.resize(mpPlaceCells->DimensionX (),mpPlaceCells->DimensionY () );
+    preferred_directions = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpPlaceCells->DimensionX (),mpPlaceCells->DimensionY ());
+    for (double i = (360.0/mpPlaceCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpPlaceCells->DimensionX ()), j++)
+    {
+        preferred_directions (j, 0) = i;
+    }
+    
+    ROS_DEBUG_STREAM("Preferred directions matrix is:" << preferred_directions.transpose ());
+
+    mpPlaceCellsSynapseSet->Init ();
+    mpPlaceCells->Init ();
+
+    mpVelocityCell->EnableForceFire (firing_rate_for_training);
+/*     ROS_DEBUG_STREAM("" << mpVelocityCell->Identifier ().c_str () << ": Firing rate is: " << mpVelocityCell->FiringRate ());
+ */
+    for (int i = mpPlaceCells->DimensionX (); i >= 1 ; i--)
+    {
+        std::ostringstream ss;
+        ss << mpPlaceCells->DimensionX () - i;
+
+        ROS_DEBUG("Clockwise calibrtion iteration: %d",i);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> delta_x;
+        Eigen::Matrix<double, Eigen::Dynamic, 1> threesixty_delta_x;
+        double preferred_direction_for_iteration = preferred_directions(i -1,0);
+        ROS_DEBUG("Preferred direction for this iteration is: %f",preferred_direction_for_iteration);
+
+        delta_x.resize(mpPlaceCells->DimensionX (), 1);
+        threesixty_delta_x.resize(mpPlaceCells->DimensionX (), 1);
+
+        delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpPlaceCells->DimensionX (), 1); /* |x_i - x| */
+        threesixty_delta_x = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpPlaceCells->DimensionX (), 1); /* 360 - |x_i - x| */
+
+        delta_x = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+        threesixty_delta_x = (360 - delta_x.array ());
+
+        delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
+/*         ROS_DEBUG_STREAM("delta_s is:" << delta_s.transpose ());
+ */
+
+        /*  Calculate firing rate for this iteration */
+        mpPlaceCells->UpdateFiringRate(delta_s, mSigmaHD);
+        /*  Head directions train: what they should be for this firing rate */
+        mpPlaceCellsSynapseSet->UpdateWeight (mpPlaceCells->FiringRate(), mpPlaceCells->FiringRate ().transpose ());
+
+        /*  Rotation cells train: the firing of rotation cells changes head
+         *  direction firing from trace (previous) to new */
+        mpPlaceCells_VelocitySynapseSet->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * mpVelocityCell->FiringRate ()).transpose ());
+
+        /*  Activate trace. This will hold f(t-1) always */
+        mpPlaceCells->UpdateFiringRateTrace ();
+
+        mpPlaceCells->PrintFiringRateToFile((std::string("Calibrating-HDCells-FiringRate-2-") + ss.str () + std::string(".txt")));
+        mpPlaceCellsSynapseSet->PrintToFile((std::string("Calibrating-HD-synapse-2-") + ss.str () + std::string(".txt")));
+        mpPlaceCells_VelocitySynapseSet->PrintToFile((std::string("Calibrating-RotationCellClockwise-synapse-") + ss.str () + std::string(".txt")));
+
+/*         ROS_DEBUG("Firing rate values are [%f,%f]",mpPlaceCells->FiringRate().maxCoeff (), mpPlaceCells->FiringRate().minCoeff ());
+ *         ROS_DEBUG("Firing rate trace values are [%f,%f]",mpPlaceCells->FiringRateTrace().maxCoeff (), mpPlaceCells->FiringRateTrace().minCoeff ());
+ */
+
+        /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
+         *  multiplying be zero in the end */
+    }
+/*     mpPlaceCellsSynapseSet->Normalize ();
+ */
+    mpPlaceCellsSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-2.txt"));
+    mpPlaceCellsSynapseSet->AddToWeight(temp_hd_weights);
+
+/*     mpPlaceCells_VelocitySynapseSet->Normalize ();
+ */
+    mpPlaceCellsSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-final.txt"));
+
+    ROS_DEBUG("%s calibrated to: [%f,%f]",mpPlaceCells_VelocitySynapseSet->Identifier().c_str (), mpPlaceCells_VelocitySynapseSet->Max (), mpPlaceCells_VelocitySynapseSet->Min ());
+
+    /*  Set the inhibition rate */
+    //mpPlaceCells->InhibitionRate (0.2 * mpPlaceCellsSynapseSet->WeightMatrix ().maxCoeff ());
+
+    /*  Disable all the force firing */
+    mpVelocityCell->DisableForceFire ();
+    mpPlaceCells->DisableForceFire ();
+
+    /*  Set synapses to stiff. These synapses don't need any modification
+     *  in the future. */
+/*     mpPlaceCellsSynapseSet->SetStiff ();
+ *     mpPlaceCells_VelocitySynapseSet->SetStiff ();
+ *     mpHD_RotationCellCounterClockwiseSynapseSet->SetStiff ();
+ */
+    mpPlaceCells_VelocitySynapseSet->PrintToFile(std::string("Calibrated-RotationCellClockwise-synapse.txt"));
+
+    /*  Switch to LTP/D */
+    mpPlaceCellsSynapseSet->LearningRate (0.00);
+    mpPlaceCells_VelocitySynapseSet->LearningRate (0.0);
+
+    mIsPlaceCellSetCalibrated = true;
+    ROS_DEBUG("Place cell Calibration complete");
+}		/* -----  end of method Bionavigator::CalibratePlaceCellSet  ----- */
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: CalibrateHDSet
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::CalibrateHDSet (  )
+{
+    ROS_DEBUG("Calibrating HD system");
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_hd_weights;
@@ -376,9 +520,9 @@ Bionavigator::Calibrate (  )
     mpHD_RotationCellClockwiseSynapseSet->LearningRate (0.0);
     mpHD_RotationCellCounterClockwiseSynapseSet->LearningRate(0.0);
 
-    mIsCalibrated = true;
-    ROS_DEBUG("Calibration complete");
-}		/* -----  end of method Bionavigator::Calibrate  ----- */
+    mIsHDCalibrated = true;
+    ROS_DEBUG("HD Calibration complete");
+}		/* -----  end of method Bionavigator::CalibrateHDSet  ----- */
 
 /*
  *--------------------------------------------------------------------------------------

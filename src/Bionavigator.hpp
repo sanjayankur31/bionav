@@ -27,6 +27,11 @@
 #include "HD_VisionSynapseSet.hpp"
 #include "HD_RotationSynapseSet.hpp"
 #include "HDSynapseSet.hpp"
+#include "PlaceCells.hpp"
+#include "PlaceCellsSynapseSet.hpp"
+#include "PlaceCells_VelocitySynapseSet.hpp"
+#include "VelocityCell.hpp"
+#include "PlaceCells_VisionSynapseSet.hpp"
 #include "ros/ros.h"
 #include <ros/console.h>
 #include "sensor_msgs/Imu.h"
@@ -148,37 +153,85 @@ class Bionavigator
          */
         void HeadDirection (double angularVelocityY);
 
+        /**
+         * @brief Helper function
+         * 
+         * @param None
+         *
+         * @return None
+         */
+        void CalibrateHDCellSet ();
+
+        /**
+         * @brief Do the work, update the location
+         *
+         * @param None
+         *
+         * @return mHeadDirection the updated head direction
+         */
+        void Location (double angularVelocityY);
+
+        /**
+         * @brief Helper function
+         * 
+         * @param None
+         *
+         * @return None
+         */
+        void CalibratePlaceCellSet ();
 
         /* ====================  DATA MEMBERS  ======================================= */
         HDCells* mpHDCells;                       /**< Head cell set */
         RotationCellCounterClockwise* mpRotationCellCounterClockwise; /**< Counter clockwise rotation cell */
         RotationCellClockwise* mpRotationCellClockwise; /**< Clockwise rotation cell */
         VisionCells* mpVisionCells;               /**< Vision cell set */
+        PlaceCells* mpPlaceCells;               /**< Place cells */
+        VelocityCell* mpVelocityCell;           /**< Velocity cell */
+
 
         HDSynapseSet* mpHDSynapseSet;             /**< HD synapse set */
         HD_VisionSynapseSet* mpHD_VisionSynapseSet; /**< HD - Vision synapse set */
         HD_RotationSynapseSet* mpHD_RotationCellClockwiseSynapseSet; /**< HD - Clockise rotation cell synapse set */
         HD_RotationSynapseSet* mpHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
+        PlaceCellsSynapseSet* mpPlaceCellsSynapseSet; /**< Place cells synapse set */
+        PlaceCells_VisionSynapseSet* mpPlaceCells_VisionSynapseSet; /**< Place cells - vision cell synapse set */
+        PlaceCells_VelocitySynapseSet* mpPlaceCells_VelocitySynapseSet; /**< Place cells - velocity cell synapse set*/
 
         ros::Subscriber mSubscriber;            /**< ROS subscriber handle */
         ros::NodeHandle mNodeHandle;            /**< ROS Node Handle */
-        ros::Publisher mHeadDirectionPublisher; /**< ROS publisher handle */
+        ros::Publisher mHeadDirectionPublisher; /**< ROS publisher handle for head direction */
+        ros::Publisher mLocationPublisher;      /**< ROS publisher handle for location */
 
-        bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
-        bool mIsCalibrated;                     /**< Is the network calibrated */
+
         int mCount;                     /**< Keep a count of number of IMU messages we've processed */
         int mCountTillFreq;
         int mProcessFreq;
         int mPositive;
         int mNegative;
+
+        /*  Head direction specific declarations */
+        bool mIsInitialDirectionSet;              /**< Is the network initialized to an initial heading */
         double mHeadDirection;             /**< The head direction */
         double mHeadDirectionPrev;             /**< The head direction */
         double mInitialHeading;
         double mSigmaHD;
         double mScale;                          /**< Scale the firing rate for calibration */
         double* mpAngularVelocityArray;
-        std::ofstream mDebugFile;
+        bool mIsHDCalibrated;                     /**< Is the HD set calibrated */
 
+        /*  Place cell specific declarations */
+        struct location {
+            double x;
+            double y;
+        };
+        struct location mLocation;
+        struct location mInitialLocation;
+        struct location mLocationPrev;
+        bool mIsInitialLocationSet;
+        double mSigmaP;
+        bool mIsPlaceCellSetCalibrated;                     /**< Is the place cell set calibrated */
+
+        std::ofstream mDebugFile;
 }; /* -----  end of class Bionavigator  ----- */
 
 
