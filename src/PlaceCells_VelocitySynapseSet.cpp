@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  PlaceCell_VelocitySynapseSet.cpp
+ *       Filename:  PlaceCells_VelocitySynapseSet.cpp
  *
- *    Description:  Definition file for PlaceCell_VelocitySynapseSet
+ *    Description:  Definition file for PlaceCells_VelocitySynapseSet
  *
  *        Version:  1.0
  *        Created:  09/10/13 19:20:02
@@ -16,57 +16,57 @@
  * =====================================================================================
  */
 
-#include "PlaceCell_VelocitySynapseSet.hpp"
+#include "PlaceCells_VelocitySynapseSet.hpp"
 
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCell_VelocitySynapseSet
- *      Method:  PlaceCell_VelocitySynapseSet
+ *       Class:  PlaceCells_VelocitySynapseSet
+ *      Method:  PlaceCells_VelocitySynapseSet
  * Description:  constructor
  *--------------------------------------------------------------------------------------
  */
-PlaceCell_VelocitySynapseSet::PlaceCell_VelocitySynapseSet ()
+PlaceCells_VelocitySynapseSet::PlaceCells_VelocitySynapseSet ()
 {
-}  /* -----  end of method PlaceCell_VelocitySynapseSet::PlaceCell_VelocitySynapseSet  (constructor)  ----- */
+}  /* -----  end of method PlaceCells_VelocitySynapseSet::PlaceCells_VelocitySynapseSet  (constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCell_VelocitySynapseSet
- *      Method:  PlaceCell_VelocitySynapseSet
+ *       Class:  PlaceCells_VelocitySynapseSet
+ *      Method:  PlaceCells_VelocitySynapseSet
  * Description:  copy constructor
  *--------------------------------------------------------------------------------------
  */
-PlaceCell_VelocitySynapseSet::PlaceCell_VelocitySynapseSet ( const PlaceCell_VelocitySynapseSet &other )
+PlaceCells_VelocitySynapseSet::PlaceCells_VelocitySynapseSet ( const PlaceCells_VelocitySynapseSet &other )
 {
-}  /* -----  end of method PlaceCell_VelocitySynapseSet::PlaceCell_VelocitySynapseSet  (copy constructor)  ----- */
+}  /* -----  end of method PlaceCells_VelocitySynapseSet::PlaceCells_VelocitySynapseSet  (copy constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCell_VelocitySynapseSet
- *      Method:  ~PlaceCell_VelocitySynapseSet
+ *       Class:  PlaceCells_VelocitySynapseSet
+ *      Method:  ~PlaceCells_VelocitySynapseSet
  * Description:  destructor
  *--------------------------------------------------------------------------------------
  */
-PlaceCell_VelocitySynapseSet::~PlaceCell_VelocitySynapseSet ()
+PlaceCells_VelocitySynapseSet::~PlaceCells_VelocitySynapseSet ()
 {
-}  /* -----  end of method PlaceCell_VelocitySynapseSet::~PlaceCell_VelocitySynapseSet  (destructor)  ----- */
+}  /* -----  end of method PlaceCells_VelocitySynapseSet::~PlaceCells_VelocitySynapseSet  (destructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCell_VelocitySynapseSet
+ *       Class:  PlaceCells_VelocitySynapseSet
  *      Method:  operator =
  * Description:  assignment operator
  *--------------------------------------------------------------------------------------
  */
-    PlaceCell_VelocitySynapseSet&
-PlaceCell_VelocitySynapseSet::operator = ( const PlaceCell_VelocitySynapseSet &other )
+    PlaceCells_VelocitySynapseSet&
+PlaceCells_VelocitySynapseSet::operator = ( const PlaceCells_VelocitySynapseSet &other )
 {
     if ( this != &other ) {
     }
     return *this;
-}  /* -----  end of method PlaceCell_VelocitySynapseSet::operator =  (assignment operator)  ----- */
+}  /* -----  end of method PlaceCells_VelocitySynapseSet::operator =  (assignment operator)  ----- */
 
 
 

@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  PlaceCellSynapseSet.cpp
+ *       Filename:  PlaceCellsSynapseSet.cpp
  *
- *    Description:  Definition file for PlaceCellSynapseSet.hpp
+ *    Description:  Definition file for PlaceCellsSynapseSet.hpp
  *
  *        Version:  1.0
  *        Created:  26/09/13 16:34:58
@@ -16,57 +16,57 @@
  * =====================================================================================
  */
 
-#include "PlaceCellSynapseSet.hpp"
+#include "PlaceCellsSynapseSet.hpp"
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCellSynapseSet
- *      Method:  PlaceCellSynapseSet
+ *       Class:  PlaceCellsSynapseSet
+ *      Method:  PlaceCellsSynapseSet
  * Description:  constructor
  *--------------------------------------------------------------------------------------
  */
-PlaceCellSynapseSet::PlaceCellSynapseSet ()
+PlaceCellsSynapseSet::PlaceCellsSynapseSet ()
 {
     mDimensionX = 100;
     mDimensionY = 100;
     mIdentifier = std::string("HDSynapses");
-}  /* -----  end of method PlaceCellSynapseSet::PlaceCellSynapseSet  (constructor)  ----- */
+}  /* -----  end of method PlaceCellsSynapseSet::PlaceCellsSynapseSet  (constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCellSynapseSet
- *      Method:  PlaceCellSynapseSet
+ *       Class:  PlaceCellsSynapseSet
+ *      Method:  PlaceCellsSynapseSet
  * Description:  copy constructor
  *--------------------------------------------------------------------------------------
  */
-PlaceCellSynapseSet::PlaceCellSynapseSet ( const PlaceCellSynapseSet &other )
+PlaceCellsSynapseSet::PlaceCellsSynapseSet ( const PlaceCellsSynapseSet &other )
 {
-}  /* -----  end of method PlaceCellSynapseSet::PlaceCellSynapseSet  (copy constructor)  ----- */
+}  /* -----  end of method PlaceCellsSynapseSet::PlaceCellsSynapseSet  (copy constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCellSynapseSet
- *      Method:  ~PlaceCellSynapseSet
+ *       Class:  PlaceCellsSynapseSet
+ *      Method:  ~PlaceCellsSynapseSet
  * Description:  destructor
  *--------------------------------------------------------------------------------------
  */
-PlaceCellSynapseSet::~PlaceCellSynapseSet ()
+PlaceCellsSynapseSet::~PlaceCellsSynapseSet ()
 {
 
-}  /* -----  end of method PlaceCellSynapseSet::~PlaceCellSynapseSet  (destructor)  ----- */
+}  /* -----  end of method PlaceCellsSynapseSet::~PlaceCellsSynapseSet  (destructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  PlaceCellSynapseSet
+ *       Class:  PlaceCellsSynapseSet
  *      Method:  operator =
  * Description:  assignment operator
  *--------------------------------------------------------------------------------------
  */
-    PlaceCellSynapseSet&
-PlaceCellSynapseSet::operator = ( const PlaceCellSynapseSet &other )
+    PlaceCellsSynapseSet&
+PlaceCellsSynapseSet::operator = ( const PlaceCellsSynapseSet &other )
 {
     if ( this != &other ) {
     }
     return *this;
-}  /* -----  end of method PlaceCellSynapseSet::operator =  (assignment operator)  ----- */
+}  /* -----  end of method PlaceCellsSynapseSet::operator =  (assignment operator)  ----- */
