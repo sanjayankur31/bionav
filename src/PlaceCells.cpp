@@ -28,21 +28,21 @@
  */
 PlaceCells::PlaceCells ()
 {
-    mIdentifier = "HD Cells";
+    mIdentifier = "Place Cells";
     mDimensionX = 100;
     mDimensionY = 1;                            /* This has to be 1 at the moment. Other values are not supported */
     mHasTrace = true;
     mTau = 1.0;
-    mC_HD_ROT = (double)(mDimensionX * 2);
-    mC_HD = (double)(mDimensionX);
-    mC_HD_V = (double)(mDimensionX);
-/*     mPhi0 = (double)(23.0 * mC_HD);
+    mC_P_HD_Vel = (double)(mDimensionX * mDimensionX);
+    mC_P = (double)(mDimensionX);
+    mC_P_V = (double)(mDimensionX);
+/*     mPhi0 = (double)(23.0 * mC_P);
  */
-    mPhi0 = (double)(1.0 * mC_HD);
-/*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
+    mPhi0 = (double)(1.0 * mC_P);
+/*     mPhi1 = (double)(1000.0 * mC_P_HD_Vel);
  */
-    mPhi1 = (double)(1.0 * mC_HD_ROT);
-    mPhi2 = (double)(1.0 * mC_HD_V);
+    mPhi1 = (double)(1.0 * mC_P_HD_Vel);
+    mPhi2 = (double)(1.0 * mC_P_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
@@ -115,11 +115,10 @@ PlaceCells::operator = ( const PlaceCells &other )
  */
     void
 PlaceCells::UpdateActivation (
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellFiringRate,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellFiringRate,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellFiringRates,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellSynapses,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> placeCellSynapses,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
         )
@@ -144,11 +143,11 @@ PlaceCells::UpdateActivation (
     mDeltaT = mTau/100.0;
     for (double i = 0; i < 1; i += mDeltaT ) {
 
-        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_HD_ROT) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
+        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_P_HD_Vel) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
         */
 
         /*  Cut out vision for the time being  */
-        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         */
 
         /*  Introduce a leak variable here */
@@ -156,9 +155,9 @@ PlaceCells::UpdateActivation (
 
         /*  Should inhibition rate be same for all neurons, or should it be
          *  different for each neuron? */
-        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((placeCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
-        temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*(((((clockwiseRotationCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + (((counterClockwiseRotationCellSynapses .array () - mInhibitionRate).matrix () * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
-        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_HD_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
+        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
+        temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((velocityCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)* headCellFiringRates) * velocityCellFiringRate).matrix ());
+        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_P_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
 
@@ -167,7 +166,7 @@ PlaceCells::UpdateActivation (
     }
 
     ROS_DEBUG("%s: Recurrent term: [%f, %f]" , mIdentifier.c_str (), temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
-    ROS_DEBUG("%s: Vestibular term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
+    ROS_DEBUG("%s: Velocity term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
     ROS_DEBUG("%s: Vision term: [%f,%f]" , mIdentifier.c_str (), temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
 
     ROS_DEBUG("%s: Firing rate term: [%f,%f]" , mIdentifier.c_str (),temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
@@ -193,7 +192,7 @@ PlaceCells::UpdateActivation (
 
     for (double i = 0; i < 1; i += mDeltaT ) 
     {
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + (((mDeltaT/mTau)*initialDirectionMatrix));
+        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + (((mDeltaT/mTau)*initialDirectionMatrix));
         mActivation = temp_matrix;
     }
     ROS_DEBUG("%s: Activation values: [%f, %f]",mIdentifier.c_str (), mActivation.maxCoeff (), mActivation.minCoeff ());
@@ -272,9 +271,9 @@ PlaceCells::UpdateFiringRate ( )
  *--------------------------------------------------------------------------------------
  */
     void
-PlaceCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS , double sigmaHD)
+PlaceCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS , double sigmaP)
 {
-    mFiringRate = ((((deltaS.array ().abs2 () +1)/(2.0*sigmaHD * sigmaHD))* -1.0).exp ()).matrix (); /* r^(HD)_i -> equation 4 */
+    mFiringRate = ((((deltaS.array ().abs2 () +1)/(2.0*sigmaP * sigmaP))* -1.0).exp ()).matrix (); /* r^(HD)_i -> equation 4 */
 }		/* -----  end of method PlaceCells::UpdateFiringRate  ----- */
 
 

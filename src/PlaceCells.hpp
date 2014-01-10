@@ -65,12 +65,11 @@ class PlaceCells: public Bionav::NeuronSet
          *
          * This is the major worker method that does the step integration.
          *
-         * @param clockwiseRotationCellFiringRate
-         * @param counterclockwiseRoatationCellFiringRate
+         * @param velocityCellFiringRate
          * @param visionCellFiringRate
+         * @param headCellFiringRates
          *
-         * @param clockwiseRotationCellSynapses
-         * @param counterclockwiseRotationCellSynapses
+         * @param velocityCellSynapses
          * @param placeCellSynapses
          * @param visionCellSynapses
          *
@@ -85,11 +84,10 @@ class PlaceCells: public Bionav::NeuronSet
          *
          */
         void UpdateActivation (
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterclockwiseRotationCellFiringRate,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellFiringRate,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellFiringRates,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> placeCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
                 );
@@ -140,7 +138,7 @@ class PlaceCells: public Bionav::NeuronSet
          *
          * @return void
          */
-        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS, double sigmaHD);
+        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS, double sigmaP);
 
         /**
          * @brief I need to initialize the activation matrix for PlaceCells also
@@ -177,13 +175,13 @@ class PlaceCells: public Bionav::NeuronSet
 
         /*  Handle these. Put them in their classes */
         double mPhi0;
-        double mC_HD;
+        double mC_P;
         double mInhibitionRate;
         double mPhi1;
-        double mC_HD_ROT;
-        double mC_HD_V;
+        double mC_P_HD_Vel;
+        double mC_P_V;
         double mPhi2;
-        double mSigmaHD;
+        double mSigmaP;
 
 }; /* -----  end of class PlaceCells  ----- */
 
