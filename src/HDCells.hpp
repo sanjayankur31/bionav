@@ -211,7 +211,6 @@ class HDCells: public Bionav::NeuronSet
         double mC_HD_ROT;
         double mC_HD_V;
         double mPhi2;
-        double mSigmaHD;
 
 }; /* -----  end of class HDCells  ----- */
 

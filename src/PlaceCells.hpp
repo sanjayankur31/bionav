@@ -181,7 +181,6 @@ class PlaceCells: public Bionav::NeuronSet
         double mC_P_HD_Vel;
         double mC_P_V;
         double mPhi2;
-        double mSigmaP;
 
 }; /* -----  end of class PlaceCells  ----- */
 
