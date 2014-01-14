@@ -110,22 +110,6 @@ class PlaceCells: public Bionav::NeuronSet
          */
         double CurrentLocation (double dummy);
 
-        /**
-         * @brief Update the "directional range" of the system
-         *
-         * This isn't exactly the same as the directional firing range of place
-         * cells. That is learnt during training. This variable just stores the
-         * degrees each cell denotes, as a convenience.
-         * 
-         * @param None
-         *
-         * @return void
-         */
-        void UpdateDirectionalRange () {
-            mDirectionalRange = 360/mDimensionX;
-            ROS_INFO("%s: directional range updated to: %f", mIdentifier.c_str (), mDirectionalRange);
-        }
-
         virtual void UpdateFiringRate ();
         virtual void UpdateFiringRateTrace ();
 
@@ -171,7 +155,6 @@ class PlaceCells: public Bionav::NeuronSet
         double mTau;                       /**< Time constant */
         double mAlpha;                     /**< Alpha in firing rate equation */
         double mBeta;                      /**< Beta in firing rate equation */
-        double mDirectionalRange;          /**< Directional range of a cell */
 
         /*  Handle these. Put them in their classes */
         double mPhi0;

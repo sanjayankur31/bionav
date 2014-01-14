@@ -29,7 +29,7 @@
 #include "HDSynapseSet.hpp"
 #include "PlaceCells.hpp"
 #include "PlaceCellsSynapseSet.hpp"
-#include "PlaceCells_VelocitySynapseSet.hpp"
+#include "PlaceCells_HD_VelocitySynapseSet.hpp"
 #include "VelocityCell.hpp"
 #include "PlaceCells_VisionSynapseSet.hpp"
 #include "ros/ros.h"
@@ -195,7 +195,7 @@ class Bionavigator
         HD_RotationSynapseSet* mpHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
         PlaceCellsSynapseSet* mpPlaceCellsSynapseSet; /**< Place cells synapse set */
         PlaceCells_VisionSynapseSet* mpPlaceCells_VisionSynapseSet; /**< Place cells - vision cell synapse set */
-        PlaceCells_VelocitySynapseSet* mpPlaceCells_VelocitySynapseSet; /**< Place cells - velocity cell synapse set*/
+        PlaceCells_HD_VelocitySynapseSet* mpPlaceCells_HD_VelocitySynapseSet; /**< Place cells - velocity cell synapse set*/
 
         ros::Subscriber mSubscriber;            /**< ROS subscriber handle */
         ros::NodeHandle mNodeHandle;            /**< ROS Node Handle */
@@ -216,7 +216,6 @@ class Bionavigator
         double mInitialHeading;
         double mSigmaHD;
         double mScale;                          /**< Scale the firing rate for calibration */
-        double* mpAngularVelocityArray;
         bool mIsHDCalibrated;                     /**< Is the HD set calibrated */
 
         /*  Place cell specific declarations */
