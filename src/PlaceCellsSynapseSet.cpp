@@ -30,7 +30,7 @@ PlaceCellsSynapseSet::PlaceCellsSynapseSet ()
 {
     mDimensionX = 100;
     mDimensionY = 100;
-    mIdentifier = std::string("HDSynapses");
+    mIdentifier = std::string("PlaceCellsSynapseSet");
 }  /* -----  end of method PlaceCellsSynapseSet::PlaceCellsSynapseSet  (constructor)  ----- */
 
 /*

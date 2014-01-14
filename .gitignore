@@ -50,3 +50,6 @@ config.mk
 *.out
 .build-version
 .rospack_cache
+
+CMakeFiles/
+CMakeCache.txt

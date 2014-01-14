@@ -177,32 +177,6 @@ PlaceCells::UpdateActivation (
 /*
  *--------------------------------------------------------------------------------------
  *       Class:  PlaceCells
- *      Method:  PlaceCells :: UpdateActivation
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-PlaceCells::UpdateActivation (
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initialDirectionMatrix,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> placeCellSynapses)
-{
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix;
-    temp_matrix.resize(mDimensionX,mDimensionY);
-    temp_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-
-    for (double i = 0; i < 1; i += mDeltaT ) 
-    {
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + (((mDeltaT/mTau)*initialDirectionMatrix));
-        mActivation = temp_matrix;
-    }
-    ROS_DEBUG("%s: Activation values: [%f, %f]",mIdentifier.c_str (), mActivation.maxCoeff (), mActivation.minCoeff ());
-
-}		/* -----  end of method PlaceCells::UpdateActivation  ----- */
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  PlaceCells
  *      Method:  PlaceCells :: UpdateFiringRate
  * Description:  
  *--------------------------------------------------------------------------------------
@@ -312,7 +286,8 @@ PlaceCells::CurrentLocation ( )
     for (int k = 0; k < mDimensionX; k +=1)
     {
         if (mFiringRate(k,0) == max_value)
-            return ((k+1) * mDirectionalRange);
+            return k;
+
     }
     return -1;
 }		/* -----  end of method PlaceCells::CurrentLocation  ----- */
@@ -336,7 +311,7 @@ PlaceCells::CurrentLocation (double dummy)
     for (int k = 0; k < mDimensionX; k +=1)
     {
         if (mActivation(k,0) == max_value)
-            return ((k+1) * mDirectionalRange);
+            return k;
     }
     return -1;
 }		/* -----  end of method PlaceCells::CurrentLocation  ----- */

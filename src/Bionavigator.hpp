@@ -160,7 +160,7 @@ class Bionavigator
          *
          * @return None
          */
-        void CalibrateHDCellSet ();
+        void CalibrateHDSet ();
 
         /**
          * @brief Do the work, update the location

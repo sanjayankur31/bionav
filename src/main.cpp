@@ -37,11 +37,13 @@ main ( int argc, char **argv )
     /*  It might be possible to store these values to use in later runs. The
      *  training is the same in each run. No point doing it again and again. */
     bionavigator->Calibrate ();
-    bionavigator->SetInitialDirection ();
+/*     bionavigator->SetInitialDirection ();
+ */
 
 
 
-    ros::spin();
+/*     ros::spin();
+ */
 
 
     return 0;

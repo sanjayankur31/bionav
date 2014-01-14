@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  PlaceCells_VelocitySynapseSet.hpp
+ *       Filename:  PlaceCells_HD_VelocitySynapseSet.hpp
  *
  *    Description:  Class that defines the synapses between the place cells and
  *    velocity cells
@@ -17,38 +17,38 @@
  * =====================================================================================
  */
 
-#ifndef  PlaceCells_VelocitySynapseSet_INC
-#define  PlaceCells_VelocitySynapseSet_INC
+#ifndef  PlaceCells_HD_VelocitySynapseSet_INC
+#define  PlaceCells_HD_VelocitySynapseSet_INC
 
 #include <Eigen/Dense>
 #include "SynapseSet.hpp"
 
 /*
  * =====================================================================================
- *        Class:  PlaceCells_VelocitySynapseSet
+ *        Class:  PlaceCells_HD_VelocitySynapseSet
  *  Description:  
  * =====================================================================================
  */
 /**
- * @class PlaceCells_VelocitySynapseSet
+ * @class PlaceCells_HD_VelocitySynapseSet
  *
  * @brief Class representing synapses between place cells and the velocity cells
  * 
  */
-class PlaceCells_VelocitySynapseSet: public Bionav::SynapseSet
+class PlaceCells_HD_VelocitySynapseSet: public Bionav::SynapseSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
-        PlaceCells_VelocitySynapseSet ();                             /* constructor      */
-        PlaceCells_VelocitySynapseSet ( const PlaceCells_VelocitySynapseSet &other );   /* copy constructor */
-        ~PlaceCells_VelocitySynapseSet ();                            /* destructor       */
+        PlaceCells_HD_VelocitySynapseSet ();                             /* constructor      */
+        PlaceCells_HD_VelocitySynapseSet ( const PlaceCells_HD_VelocitySynapseSet &other );   /* copy constructor */
+        ~PlaceCells_HD_VelocitySynapseSet ();                            /* destructor       */
 
         /* ====================  ACCESSORS     ======================================= */
 
         /* ====================  MUTATORS      ======================================= */
         /* ====================  OPERATORS     ======================================= */
 
-        PlaceCells_VelocitySynapseSet& operator = ( const PlaceCells_VelocitySynapseSet &other ); /* assignment operator */
+        PlaceCells_HD_VelocitySynapseSet& operator = ( const PlaceCells_HD_VelocitySynapseSet &other ); /* assignment operator */
 
     protected:
         /* ====================  METHODS       ======================================= */
@@ -60,7 +60,7 @@ class PlaceCells_VelocitySynapseSet: public Bionav::SynapseSet
 
         /* ====================  DATA MEMBERS  ======================================= */
 
-}; /* -----  end of class PlaceCells_VelocitySynapseSet  ----- */
+}; /* -----  end of class PlaceCells_HD_VelocitySynapseSet  ----- */
 
 
-#endif   /* ----- #ifndef PlaceCells_VelocitySynapseSet_INC  ----- */
+#endif   /* ----- #ifndef PlaceCells_HD_VelocitySynapseSet_INC  ----- */
