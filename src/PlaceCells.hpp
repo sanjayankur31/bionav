@@ -20,6 +20,7 @@
 #define  PlaceCells_INC
 
 #include "NeuronSet.hpp"
+#include "PlaceCells_HD_VelocitySynapseSet.hpp"
 #include <Eigen/Dense>
 
 /*
@@ -87,7 +88,7 @@ class PlaceCells: public Bionav::NeuronSet
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellFiringRate,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellFiringRates,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellSynapses,
+                std::vector<PlaceCells_HD_VelocitySynapseSet*> velocityCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> placeCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
                 );

@@ -195,7 +195,8 @@ class Bionavigator
         HD_RotationSynapseSet* mpHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
         PlaceCellsSynapseSet* mpPlaceCellsSynapseSet; /**< Place cells synapse set */
         PlaceCells_VisionSynapseSet* mpPlaceCells_VisionSynapseSet; /**< Place cells - vision cell synapse set */
-        PlaceCells_HD_VelocitySynapseSet* mpPlaceCells_HD_VelocitySynapseSet; /**< Place cells - velocity cell synapse set*/
+        std::vector<PlaceCells_HD_VelocitySynapseSet*> mpPlaceCells_HD_VelocitySynapseSet; /**< Place cells - velocity cell synapse sets.*/
+        //PlaceCells_HD_VelocitySynapseSet* mpPlaceCells_HD_VelocitySynapseSet; /**< Place cells - velocity cell synapse set*/
 
         ros::Subscriber mSubscriber;            /**< ROS subscriber handle */
         ros::NodeHandle mNodeHandle;            /**< ROS Node Handle */

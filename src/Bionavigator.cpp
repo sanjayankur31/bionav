@@ -42,7 +42,12 @@ Bionavigator::Bionavigator ()
 
     mpHD_RotationCellClockwiseSynapseSet = new HD_RotationSynapseSet ();
     mpHD_RotationCellCounterClockwiseSynapseSet = new HD_RotationSynapseSet ();
-    mpPlaceCells_HD_VelocitySynapseSet = new PlaceCells_HD_VelocitySynapseSet ();
+    
+    mpPlaceCells_HD_VelocitySynapseSet.resize (100);
+    for (int i = 0; i < 100; i++)
+    {
+        mpPlaceCells_HD_VelocitySynapseSet[i] = new PlaceCells_HD_VelocitySynapseSet ();
+    }
 
 
     mInitialHeading = 180;
@@ -55,6 +60,7 @@ Bionavigator::Bionavigator ()
 
     /*  sigma controls the width of the gaussian. Smaller sigma, smaller width */
     mSigmaHD = 10;
+    mSigmaP = 10;
 
     mDebugFile.open("0000-Master-debug.txt");
 
@@ -93,6 +99,14 @@ Bionavigator::~Bionavigator ()
     delete mpHD_VisionSynapseSet;
     delete mpHD_RotationCellClockwiseSynapseSet;
     delete mpHD_RotationCellCounterClockwiseSynapseSet;
+
+    delete mpPlaceCells;
+    delete mpPlaceCells_VisionSynapseSet;
+    delete mpPlaceCellsSynapseSet;
+    for (int i = 0; i < 100; i++)
+    {
+        delete mpPlaceCells_HD_VelocitySynapseSet[i];
+    }
 }  /* -----  end of method Bionavigator::~Bionavigator  (destructor)  ----- */
 
 /*
@@ -196,10 +210,15 @@ Bionavigator::Init (  )
     ROS_DEBUG("%s: Initialized", (mpHD_RotationCellClockwiseSynapseSet->Identifier()).c_str ());
 
     /*  Effective synapse set */
-    mpPlaceCells_HD_VelocitySynapseSet->SetDimension(head_cell_dimension_x,head_cell_dimension_x);
-    mpPlaceCells_HD_VelocitySynapseSet->SetIdentifier(std::string("Place Cells - HD - velocity cell synapse set"));
-    mpPlaceCells_HD_VelocitySynapseSet->Init ();
-    ROS_DEBUG("%s: Initialized", (mpPlaceCells_HD_VelocitySynapseSet->Identifier()).c_str ());
+    for ( int i = 0; i < head_cell_dimension_x; i++)
+    {
+        std::ostringstream ss;
+        ss << "Place Cells - HD - velocity cell synapse set - " << i;
+        mpPlaceCells_HD_VelocitySynapseSet[i]->SetDimension(head_cell_dimension_x,head_cell_dimension_x);
+                mpPlaceCells_HD_VelocitySynapseSet[i]->SetIdentifier(ss.str ());
+        mpPlaceCells_HD_VelocitySynapseSet[i]->Init ();
+        ROS_DEBUG("%s: Initialized", (mpPlaceCells_HD_VelocitySynapseSet[i]->Identifier()).c_str ());
+    }
 
     mpHD_VisionSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_y);
     mpHD_VisionSynapseSet->SetIdentifier(std::string("HD - Vision cell synapse set"));
@@ -225,7 +244,8 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
-    CalibrateHDSet ();
+/*     CalibrateHDSet ();
+ */
     CalibratePlaceCellSet ();
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
@@ -258,7 +278,8 @@ Bionavigator::CalibratePlaceCellSet (  )
 
     /*  Ensure all synapses are plastic here */
     mpPlaceCellsSynapseSet->SetPlastic ();
-    mpPlaceCells_HD_VelocitySynapseSet->SetPlastic ();
+    for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        mpPlaceCells_HD_VelocitySynapseSet[i]->SetPlastic ();
 
     delta_s_hd.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
     delta_s_p.resize(mpPlaceCells->DimensionX (), mpPlaceCells->DimensionY ());
@@ -286,6 +307,10 @@ Bionavigator::CalibratePlaceCellSet (  )
             preferred_y ((place_cells_side_length * j) + k, 0) = k;
         }
     }
+
+/*     ROS_DEBUG_STREAM("preferred_x is:" << preferred_x.transpose ());
+ *     ROS_DEBUG_STREAM("preferred_y is:" << preferred_y.transpose ());
+ */
 
     mpPlaceCellsSynapseSet->Init ();
     mpPlaceCells->Init ();
@@ -318,19 +343,32 @@ Bionavigator::CalibratePlaceCellSet (  )
 
         delta_s_p = (delta_x.array ().square () + delta_y.array (). square ()).array ().sqrt ();
 
+
         /*  Calculate firing rate for this iteration */
         mpPlaceCells->UpdateFiringRate(delta_s_p, mSigmaP);
+
+/*         ROS_DEBUG_STREAM("Place cell firing rate is:" << mpPlaceCells->FiringRate().transpose ());
+ */
         /*  Recurrent synapse update: only required once */
         mpPlaceCellsSynapseSet->UpdateWeight (mpPlaceCells->FiringRate(), mpPlaceCells->FiringRate ().transpose ());
 
-        mpPlaceCells_HD_VelocitySynapseSet->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * (mpHDCells->FiringRate () * mpVelocityCell->FiringRate ())).transpose ());
+        for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        {
+            Eigen::Matrix<double, 1, 1> temp;
+            temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+            mpPlaceCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * temp).transpose ());
+        }
 
         /*  Activate trace. This will hold f(t-1) always */
         mpPlaceCells->UpdateFiringRateTrace ();
 
         mpPlaceCells->PrintFiringRateToFile((std::string("Calibrating-PlaceCells-FiringRate-1-") + ss.str () + std::string(".txt")));
         mpPlaceCellsSynapseSet->PrintToFile((std::string("Calibrating-Place-synapse-1-") + ss.str () + std::string(".txt")));
-        mpPlaceCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Place-HD-V-synapse-1-") + ss.str () + std::string(".txt")));
+
+        /*  Disabling for the time being. 100 files in each print? No way! */
+/*         mpPlaceCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Place-HD-V-synapse-1-") + ss.str () + std::string(".txt")));
+ */
+
 
     }
     mpPlaceCellsSynapseSet->PrintToFile(std::string("Calibrated-Place-synapse-1.txt"));
@@ -371,18 +409,23 @@ Bionavigator::CalibratePlaceCellSet (  )
 
             /*  Calculate firing rate for this iteration */
             mpPlaceCells->UpdateFiringRate(delta_s_p, mSigmaP);
-            /*  Recurrent synapse update: only required once */
-/*             mpPlaceCellsSynapseSet->UpdateWeight (mpPlaceCells->FiringRate(), mpPlaceCells->FiringRate ().transpose ());
- */
+            mpPlaceCellsSynapseSet->UpdateWeight (mpPlaceCells->FiringRate(), mpPlaceCells->FiringRate ().transpose ());
 
-            mpPlaceCells_HD_VelocitySynapseSet->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * mpHDCells->FiringRate () * mpVelocityCell->FiringRate ()).transpose ());
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpPlaceCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * temp).transpose ());
+            }
+
 
             /*  Activate trace. This will hold f(t-1) always */
             mpPlaceCells->UpdateFiringRateTrace ();
 
             mpPlaceCells->PrintFiringRateToFile((std::string("Calibrating-PlaceCells-FiringRate-2-") + ss.str () + std::string(".txt")));
             mpPlaceCellsSynapseSet->PrintToFile((std::string("Calibrating-Place-synapse-2-") + ss.str () + std::string(".txt")));
-            mpPlaceCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Place-HD-V-synapse-") + ss.str () + std::string(".txt")));
+/*             mpPlaceCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Place-HD-V-synapse-") + ss.str () + std::string(".txt")));
+ */
         }
     }
 
@@ -421,36 +464,46 @@ Bionavigator::CalibratePlaceCellSet (  )
             /*  Calculate firing rate for this iteration */
             mpPlaceCells->UpdateFiringRate(delta_s_p, mSigmaP);
             /*  Recurrent synapse update: only required once */
-/*             mpPlaceCellsSynapseSet->UpdateWeight (mpPlaceCells->FiringRate(), mpPlaceCells->FiringRate ().transpose ());
- */
+            mpPlaceCellsSynapseSet->UpdateWeight (mpPlaceCells->FiringRate(), mpPlaceCells->FiringRate ().transpose ());
 
-            mpPlaceCells_HD_VelocitySynapseSet->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * mpHDCells->FiringRate () * mpVelocityCell->FiringRate ()).transpose ());
+
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpPlaceCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpPlaceCells->FiringRate (), (mpPlaceCells->FiringRateTrace () * temp).transpose ());
+            }
 
             /*  Activate trace. This will hold f(t-1) always */
             mpPlaceCells->UpdateFiringRateTrace ();
 
             mpPlaceCells->PrintFiringRateToFile((std::string("Calibrating-PlaceCells-FiringRate-3-") + ss.str () + std::string(".txt")));
             mpPlaceCellsSynapseSet->PrintToFile((std::string("Calibrating-Place-synapse-3-") + ss.str () + std::string(".txt")));
-            mpPlaceCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Place-HD-V-synapse-3-") + ss.str () + std::string(".txt")));
+/*             mpPlaceCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Place-HD-V-synapse-3-") + ss.str () + std::string(".txt")));
+ */
         }
     }
 
-    /*  Finally normalize */
-    mpPlaceCells_HD_VelocitySynapseSet->Normalize ();
+    for (int i = 0; i < mpHDCells->DimensionX (); i++)
+    {
+        /*  Finally normalize */
+        mpPlaceCells_HD_VelocitySynapseSet[i]->Normalize ();
+        /*  Switch to LTP/D */
+        mpPlaceCells_HD_VelocitySynapseSet[i]->LearningRate (0.0);
+    }
 
     mpPlaceCellsSynapseSet->PrintToFile(std::string("Calibrated-Place-cell-synapse-final.txt"));
 
-    ROS_DEBUG("%s calibrated to: [%f,%f]",mpPlaceCells_HD_VelocitySynapseSet->Identifier().c_str (), mpPlaceCells_HD_VelocitySynapseSet->Max (), mpPlaceCells_HD_VelocitySynapseSet->Min ());
+/*     ROS_DEBUG("%s calibrated to: [%f,%f]",mpPlaceCells_HD_VelocitySynapseSet->Identifier().c_str (), mpPlaceCells_HD_VelocitySynapseSet->Max (), mpPlaceCells_HD_VelocitySynapseSet->Min ());
+ */
 
     /*  Disable all the force firing */
     mpVelocityCell->DisableForceFire ();
     mpPlaceCells->DisableForceFire ();
 
-    mpPlaceCells_HD_VelocitySynapseSet->PrintToFile(std::string("Calibrated-Place-HD-V-synapse.txt"));
+/*     mpPlaceCells_HD_VelocitySynapseSet->PrintToFile(std::string("Calibrated-Place-HD-V-synapse.txt"));
+ */
 
-    /*  Switch to LTP/D */
-    mpPlaceCellsSynapseSet->LearningRate (0.00);
-    mpPlaceCells_HD_VelocitySynapseSet->LearningRate (0.0);
 
     mIsPlaceCellSetCalibrated = true;
     ROS_DEBUG("Place cell Calibration complete");
