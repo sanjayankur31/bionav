@@ -51,6 +51,8 @@ Bionavigator::Bionavigator ()
 
 
     mInitialHeading = 180;
+    mInitialLocation.x = 0;
+    mInitialLocation.y = 0;
     mCount = 0;
     mCountTillFreq = 0;
     mProcessFreq = 10;
@@ -244,8 +246,7 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
-/*     CalibrateHDSet ();
- */
+    CalibrateHDSet ();
     CalibratePlaceCellSet ();
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
 
@@ -949,6 +950,123 @@ Bionavigator::SetInitialDirection ( )
     mpHD_RotationCellClockwiseSynapseSet->PrintToFile(std::string("Stabilized-HD-RotationCellClockwise-synapse.txt"));
 }		/* -----  end of method Bionavigator::SetInitialDirection  ----- */
 
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: SetInitialLocation
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::SetInitialLocation ( )
+{
+    ROS_INFO("Setting initial reference location to %f, %f", mInitialLocation.x, mInitialLocation.y);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initial_location_matrix; /**< @f$I^{V}_i@f$  */
+
+    /*  For the message to be published */
+    std_msgs::Float64 msg;
+
+    initial_location_matrix.resize(mpPlaceCells->DimensionX (), mpPlaceCells->DimensionY ());
+
+    /*  Disable all input completely */
+    mpVelocityCell->DisableForceFire ();
+    mpPlaceCells->DisableForceFire ();
+    mpPlaceCells->Init ();
+
+    /*
+     * Set the synaptic weights of the vision head synapses to the weights
+     * learned during training for the cann recurrent network.
+     *
+     * This will ensure a peak at the preferred direction.
+     */
+    mpPlaceCells_VisionSynapseSet->SetPlastic ();
+    initial_location_matrix = (mpPlaceCellsSynapseSet->WeightMatrix ()).col (10 * mInitialLocation.x + mInitialLocation.y);
+    mpPlaceCells_VisionSynapseSet->AddToWeight(initial_location_matrix.array ());
+    mpPlaceCells_VisionSynapseSet->PrintToFile(std::string("PlaceCells-Before-Forced-vision-synapse.txt"));
+    mpPlaceCells_VisionSynapseSet->Normalize ();
+    mpPlaceCells->PrintFiringRateToFile(std::string("Before-Forced-PlaceCells-FiringRate.txt"));
+    mpPlaceCells->PrintActivationToFile(std::string("Before-Forced-PlaceCells-Activation.txt"));
+    mpPlaceCells_VisionSynapseSet->SetStiff ();
+    mpVisionCells->EnableForceFire (1.0);
+
+    /*
+     * Find a good number of iterations. Optimize it.
+     */
+    ROS_INFO("Forcing an initial location");
+    for (double i = 0; i < 10 ; i++ ) 
+    {
+        std::ostringstream ss;
+        ss << i;
+        mpPlaceCells->InhibitionRate (0.2);
+
+        /*  Passing all matrices, but the velocity synapse vector.. NOTE */
+        mpPlaceCells->UpdateActivation(mpVelocityCell->FiringRate(), mpVisionCells->FiringRate(), mpHDCells->FiringRate(), mpPlaceCells_HD_VelocitySynapseSet, mpPlaceCellsSynapseSet->WeightMatrix(),mpPlaceCells_VisionSynapseSet->WeightMatrix()  );
+        mpPlaceCells->FiringRates ();
+
+        mpPlaceCells->PrintFiringRateToFile((std::string("Forced-PlaceCells-FiringRate-") + ss.str () + std::string(".txt")));
+        mpPlaceCells->PrintActivationToFile((std::string("Forced-PlaceCells-Activation-") + ss.str () + std::string(".txt")));
+
+/*         mpPlaceSynapseSet->UpdateWeight (mpPlaceCells->FiringRateTrace (), mpPlaceCells->FiringRate ().transpose ());
+ *         mpPlaceSynapseSet->Normalize ();
+ */
+
+    }
+    mLocation.x = mpPlaceCells->CurrentLocation ()/10.0;
+    mLocation.y = (int)(mpPlaceCells->CurrentLocation ()) % 10;
+    ROS_DEBUG("Location is now: [%f, %f]",mLocation.x, mLocation.y);
+/*     mpPlaceCells->PrintFiringRateToFile(std::string("Forced-PlaceCells-FiringRate.txt"));
+ *     mpPlaceCells->PrintActivationToFile(std::string("Forced-PlaceCells-Activation.txt"));
+ *     mpPlaceSynapseSet->PrintToFile(std::string("Forced-Place-synapse.txt"));
+ *     mpPlace_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Forced-Place-RotationCellCounterClockwise-synapse.txt"));
+ */
+/*     msg.data = mHeadLocation;
+ *     mHeadLocationPublisher.publish(msg);
+ */
+    mpVisionCells->DisableForceFire ();
+
+    /*
+     * Find a good number of loops for this
+     */
+    ROS_INFO("Stabilizing activity packet");
+    for (int j = 0; j < 200 ; j++) 
+    {
+        mpPlaceCells->InhibitionRate (0.2);
+        /*  Passing all matrices, but the velocity synapse vector.. NOTE */
+        mpPlaceCells->UpdateActivation(mpVelocityCell->FiringRate(), mpVisionCells->FiringRate(), mpHDCells->FiringRate(), mpPlaceCells_HD_VelocitySynapseSet, mpPlaceCellsSynapseSet->WeightMatrix(),mpPlaceCells_VisionSynapseSet->WeightMatrix() );
+        mpPlaceCells->UpdateFiringRate ();
+        mpPlaceCells->UpdateFiringRateTrace ();
+        mpPlaceCells->FiringRates ();
+
+        mLocation.x = mpPlaceCells->CurrentLocation ()/10.0;
+        mLocation.y = (int)(mpPlaceCells->CurrentLocation ()) % 10;
+        ROS_DEBUG("Location is now: [%f, %f]",mLocation.x, mLocation.y);
+
+        /*  Learning still occurs! */
+/*         mpPlaceSynapseSet->UpdateWeight (mpPlaceCells->FiringRateTrace (), mpPlaceCells->FiringRate ().transpose ());
+ *         mpPlaceSynapseSet->Normalize ();
+ * 
+ */
+
+/*         msg.data = mHeadLocation;
+ *         mHeadLocationPublisher.publish(msg);
+ */
+        if((j == 0 ) || (j%10 == 9))
+        {
+            std::ostringstream ss;
+            ss << j;
+            mpPlaceCells->PrintFiringRateToFile((std::string("Stabilized-PlaceCells-FiringRate-") + ss.str () + std::string(".txt")));
+            mpPlaceCells->PrintActivationToFile((std::string("Stabilized-PlaceCells-Activation-") + ss.str () + std::string(".txt")));
+/*             mpPlaceSynapseSet->PrintToFile(std::string("Stabilized-Place-synapse.txt"));
+ */
+        }
+    }
+
+    mIsInitialLocationSet = true;
+    ROS_DEBUG("Location set to: [%f, %f]",mLocation.x, mLocation.y);
+    mpPlaceCells->PrintFiringRateToFile(std::string("Stabilized-PlaceCells-FiringRate.txt"));
+    mpPlaceCells->PrintActivationToFile(std::string("Stabilized-PlaceCells-Activation.txt"));
+    mpPlaceCellsSynapseSet->PrintToFile(std::string("Stabilized-Place-synapse.txt"));
+}		/* -----  end of method Bionavigator::SetInitialLocation  ----- */
 
 
 /*

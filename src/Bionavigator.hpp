@@ -106,6 +106,18 @@ class Bionavigator
         void SetInitialDirection ();
 
         /**
+         * @brief initialize the system to an initial location
+         *
+         * Basically, create a peak and let it stabilize so we can begin to
+         * process angular velocity inputs.
+         *
+         * @param None
+         *
+         * @return void
+         */
+        void SetInitialLocation ();
+
+        /**
          * @brief Publish current direction
          *
          * @todo I'll need to add more methods as I look to implement land mark

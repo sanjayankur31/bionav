@@ -172,9 +172,9 @@ PlaceCells::UpdateActivation (
             temp_matrix4 = temp_matrix2;
         }
 
-        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_P_V) * (visionCellSynapses.array () * visionCellFiringRate.array ()).matrix ());
+        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_P_V) * (visionCellSynapses * visionCellFiringRate)).matrix ();
 
-        mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
+        mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3 + temp_matrix4;
 
         UpdateFiringRate ();
         UpdateFiringRateTrace ();
