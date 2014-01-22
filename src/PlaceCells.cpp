@@ -236,19 +236,6 @@ PlaceCells::UpdateFiringRate ( )
             mFiringRate(i,0) = 0;
     }
 
-    /*  rescale to [0,1] */
-/*     temp_matrix = mFiringRate;
- *     mFiringRate = (temp_matrix.array ()/temp_matrix.maxCoeff ()).matrix ();
- */
-
-    /*  Keep it between 0 and 1 */
-/*     temp_matrix = (mFiringRate.array() - mFiringRate.minCoeff ()).matrix ();
- */
-
-/*     ROS_DEBUG("Firing term1: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
- *     ROS_DEBUG("Firing term2: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
- *     ROS_DEBUG("Firing term3: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
- */
 
 }		/* -----  end of method PlaceCells::UpdateFiringRate  ----- */
 
@@ -263,7 +250,10 @@ PlaceCells::UpdateFiringRate ( )
     void
 PlaceCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS , double sigmaP)
 {
-    mFiringRate = ((((deltaS.array ().abs2 () +1)/(2.0*sigmaP * sigmaP))* -1.0).exp ()).matrix ();
+    mFiringRate = ((((deltaS.array () +1)/(2.0*sigmaP * sigmaP))* -1.0).exp ()).matrix ();
+
+/*     mFiringRate = deltaS.array ();
+ */
 }		/* -----  end of method PlaceCells::UpdateFiringRate  ----- */
 
 
