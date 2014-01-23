@@ -165,13 +165,11 @@ namespace Bionav {
              *
              * @return void
              */
-            void Normalize (){
-                /*  Normalize each row individually */
-                for (int i = 0; i < mWeightMatrix.rows (); i++)
-                {
-                    mDeltaW.row (i) = mWeightMatrix.row (i)/mWeightMatrix.row (i).norm ();
-                }
+            void Normalize ()
+            {
+                mDeltaW = mWeightMatrix/mWeightMatrix.norm ();
                 mWeightMatrix = mDeltaW;
+
                 ROS_DEBUG("%s: Synaptic weight normalized to [%f,%f]", mIdentifier.c_str (), mWeightMatrix.maxCoeff (), mWeightMatrix.minCoeff ());
 
 
