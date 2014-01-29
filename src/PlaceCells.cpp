@@ -248,9 +248,9 @@ PlaceCells::UpdateFiringRate ( )
  *--------------------------------------------------------------------------------------
  */
     void
-PlaceCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS , double sigmaP)
+PlaceCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaSsq , double sigmaP)
 {
-    mFiringRate = ((((deltaS.array () +1)/(2.0*sigmaP * sigmaP))* -1.0).exp ()).matrix ();
+    mFiringRate = ((((deltaSsq.array () +1)/(2.0*sigmaP * sigmaP))* -1.0).exp ()).matrix ();
 
 /*     mFiringRate = deltaS.array ();
  */
