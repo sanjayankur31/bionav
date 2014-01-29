@@ -38,11 +38,11 @@ HDCells::HDCells ()
     mC_HD_V = (double)(mDimensionX);
 /*     mPhi0 = (double)(23.0 * mC_HD);
  */
-    mPhi0 = (double)(1.0 * mC_HD);
+    mPhi0 = (double)(10.0 * mC_HD);
 /*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
  */
-    mPhi1 = (double)(1.0 * mC_HD_ROT);
-    mPhi2 = (double)(1.0 * mC_HD_V);
+    mPhi1 = (double)(10.0 * mC_HD_ROT);
+    mPhi2 = (double)(10.0 * mC_HD_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
