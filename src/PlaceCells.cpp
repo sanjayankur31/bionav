@@ -38,11 +38,11 @@ PlaceCells::PlaceCells ()
     mC_P_V = (double)(mDimensionX);
 /*     mPhi0 = (double)(23.0 * mC_P);
  */
-    mPhi0 = (double)(1.0 * mC_P);
+    mPhi0 = (double)(10.0 * mC_P);
 /*     mPhi1 = (double)(1000.0 * mC_P_HD_Vel);
  */
-    mPhi1 = (double)(1.0 * mC_P_HD_Vel);
-    mPhi2 = (double)(1.0 * mC_P_V);
+    mPhi1 = (double)(10.0 * mC_P_HD_Vel);
+    mPhi2 = (double)(1000.0 * mC_P_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;

@@ -39,7 +39,10 @@ main ( int argc, char **argv )
     bionavigator->Calibrate ();
 /*     bionavigator->SetInitialDirection ();
  */
-    bionavigator->SetInitialLocation ();
+
+/*     bionavigator->SetInitialLocation ();
+ */
+
 
 
 
