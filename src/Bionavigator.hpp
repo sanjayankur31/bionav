@@ -27,11 +27,11 @@
 #include "HD_VisionSynapseSet.hpp"
 #include "HD_RotationSynapseSet.hpp"
 #include "HDSynapseSet.hpp"
-#include "PlaceCells.hpp"
-#include "PlaceCellsSynapseSet.hpp"
-#include "PlaceCells_HD_VelocitySynapseSet.hpp"
+#include "GridCells.hpp"
+#include "GridCellsSynapseSet.hpp"
+#include "GridCells_HD_VelocitySynapseSet.hpp"
 #include "VelocityCell.hpp"
-#include "PlaceCells_VisionSynapseSet.hpp"
+#include "GridCells_VisionSynapseSet.hpp"
 #include "ros/ros.h"
 #include <ros/console.h>
 #include "sensor_msgs/Imu.h"
@@ -190,14 +190,14 @@ class Bionavigator
          *
          * @return None
          */
-        void CalibratePlaceCellSet ();
+        void CalibrateGridCellSet ();
 
         /* ====================  DATA MEMBERS  ======================================= */
         HDCells* mpHDCells;                       /**< Head cell set */
         RotationCellCounterClockwise* mpRotationCellCounterClockwise; /**< Counter clockwise rotation cell */
         RotationCellClockwise* mpRotationCellClockwise; /**< Clockwise rotation cell */
         VisionCells* mpVisionCells;               /**< Vision cell set */
-        PlaceCells* mpPlaceCells;               /**< Place cells */
+        GridCells* mpGridCells;               /**< Grid cells */
         VelocityCell* mpVelocityCell;           /**< Velocity cell */
 
 
@@ -205,10 +205,10 @@ class Bionavigator
         HD_VisionSynapseSet* mpHD_VisionSynapseSet; /**< HD - Vision synapse set */
         HD_RotationSynapseSet* mpHD_RotationCellClockwiseSynapseSet; /**< HD - Clockise rotation cell synapse set */
         HD_RotationSynapseSet* mpHD_RotationCellCounterClockwiseSynapseSet; /**< HD - counter clockwise rotation cell synapse set */
-        PlaceCellsSynapseSet* mpPlaceCellsSynapseSet; /**< Place cells synapse set */
-        PlaceCells_VisionSynapseSet* mpPlaceCells_VisionSynapseSet; /**< Place cells - vision cell synapse set */
-        std::vector<PlaceCells_HD_VelocitySynapseSet*> mpPlaceCells_HD_VelocitySynapseSet; /**< Place cells - velocity cell synapse sets.*/
-        //PlaceCells_HD_VelocitySynapseSet* mpPlaceCells_HD_VelocitySynapseSet; /**< Place cells - velocity cell synapse set*/
+        GridCellsSynapseSet* mpGridCellsSynapseSet; /**< Grid cells synapse set */
+        GridCells_VisionSynapseSet* mpGridCells_VisionSynapseSet; /**< Grid cells - vision cell synapse set */
+        std::vector<GridCells_HD_VelocitySynapseSet*> mpGridCells_HD_VelocitySynapseSet; /**< Grid cells - velocity cell synapse sets.*/
+        //GridCells_HD_VelocitySynapseSet* mpGridCells_HD_VelocitySynapseSet; /**< Grid cells - velocity cell synapse set*/
 
         ros::Subscriber mSubscriber;            /**< ROS subscriber handle */
         ros::NodeHandle mNodeHandle;            /**< ROS Node Handle */
@@ -231,7 +231,7 @@ class Bionavigator
         double mScale;                          /**< Scale the firing rate for calibration */
         bool mIsHDCalibrated;                     /**< Is the HD set calibrated */
 
-        /*  Place cell specific declarations */
+        /*  Grid cell specific declarations */
         struct location {
             double x;
             double y;
@@ -241,7 +241,7 @@ class Bionavigator
         struct location mLocationPrev;
         bool mIsInitialLocationSet;
         double mSigmaP;
-        bool mIsPlaceCellSetCalibrated;                     /**< Is the place cell set calibrated */
+        bool mIsGridCellSetCalibrated;                     /**< Is the grid cell set calibrated */
 
         std::ofstream mDebugFile;
 }; /* -----  end of class Bionavigator  ----- */
