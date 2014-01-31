@@ -279,6 +279,7 @@ Bionavigator::CalibrateGridCellSet (  )
     double firing_rate_for_training;
     double grid_cells_side_length = sqrt (mpGridCells->DimensionX ());
     ROS_DEBUG("grid cell side length is: %f", grid_cells_side_length);
+    double half = 0;
 
 
     firing_rate_for_training = 1;
@@ -305,13 +306,22 @@ Bionavigator::CalibrateGridCellSet (  )
         preferred_directions (j, 0) = i;
     }
 
+    half = 0.5;
     /*  Set up preferred locations of grid cells */
-    for (double j = 0; j < grid_cells_side_length; j++)
+    for (double j = 0.0; j < grid_cells_side_length; j++)
     {
-        for (double k = 0; k < grid_cells_side_length; k++)
+
+        for (double k = 0.0; k < grid_cells_side_length; k++)
         {
-            preferred_x ((grid_cells_side_length * j) + k, 0) = j;
-            preferred_y ((grid_cells_side_length * j) + k, 0) = k;
+            /*  we need to alternate the x as halves and fulls for grid cells since
+             *  they're equilateral trianges */
+            if(half == 0)
+                half = 0.5;
+            else if (half == 0.5)
+                half = 0;
+
+            preferred_x ((grid_cells_side_length * j) + k, 0) = j + half;
+            preferred_y ((grid_cells_side_length * j) + k, 0) = k * 0.8660254037844386;
         }
     }
 
