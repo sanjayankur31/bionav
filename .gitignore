@@ -53,3 +53,4 @@ config.mk
 
 CMakeFiles/
 CMakeCache.txt
+Makefile
