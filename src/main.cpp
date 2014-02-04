@@ -40,8 +40,8 @@ main ( int argc, char **argv )
 /*     bionavigator->SetInitialDirection ();
  */
 
-/*     bionavigator->SetInitialLocation ();
- */
+    bionavigator->SetInitialLocation ();
+
 
 
 

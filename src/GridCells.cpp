@@ -33,18 +33,20 @@ GridCells::GridCells ()
     mDimensionY = 1;                            /* This has to be 1 at the moment. Other values are not supported */
     mHasTrace = true;
     mTau = 1.0;
-    mC_P_HD_Vel = (double)(mDimensionX * mDimensionX);
-    mC_P = (double)(mDimensionX);
-    mC_P_V = (double)(mDimensionX);
-/*     mPhi0 = (double)(23.0 * mC_P);
+    mC_G_HD_Vel = (double)(mDimensionX * mDimensionX);
+    mC_G = (double)(mDimensionX);
+    mC_G_V = (double)(mDimensionX);
+/*     mPhi0 = (double)(23.0 * mC_G);
  */
-    mPhi0 = (double)(10.0 * mC_P);
-/*     mPhi1 = (double)(1000.0 * mC_P_HD_Vel);
+    mPhi0 = (double)(15.0 * mC_G);
+/*     mPhi1 = (double)(1000.0 * mC_G_HD_Vel);
  */
-    mPhi1 = (double)(10.0 * mC_P_HD_Vel);
-    mPhi2 = (double)(1000.0 * mC_P_V);
+    mPhi1 = (double)(1.0 * mC_G_HD_Vel);
+    mPhi2 = (double)(10.0 * mC_G_V);
     mAlpha = 1.5;
-    mBeta = 3;
+    /*  Beta controls the slope of the function we're using for firing rate
+     *  from activation. Less beta, less slope, more beta, more slope */
+    mBeta = 2.5;
     mDeltaT = 0.0001;
     mEta = 0.1;
 
@@ -152,11 +154,11 @@ GridCells::UpdateActivation (
     mDeltaT = mTau/100.0;
     for (double i = 0; i < 1; i += mDeltaT ) {
 
-        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((gridCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_P_HD_Vel) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
+        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_G) * ((gridCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_G_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_G_HD_Vel) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
         */
 
         /*  Cut out vision for the time being  */
-        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((gridCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_G) * ((gridCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_G_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         */
 
         /*  Introduce a leak variable here */
@@ -164,15 +166,15 @@ GridCells::UpdateActivation (
 
         /*  Should inhibition rate be same for all neurons, or should it be
          *  different for each neuron? */
-        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_P) * ((gridCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
+        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_G) * ((gridCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
         for (int j  = 0 ; j < mDimensionX; j ++)
         {
             temp_matrix5 = velocityCellSynapses[i]->WeightMatrix();
-            temp_matrix2 = temp_matrix4 + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((temp_matrix5.array () - mInhibitionRate).matrix () * mFiringRate)* headCellFiringRates(i,0)) * velocityCellFiringRate).matrix ());
+            temp_matrix2 = temp_matrix4 + ((mDeltaT/mTau * mPhi1/mC_G_HD_Vel)*((((temp_matrix5.array () - mInhibitionRate).matrix () * mFiringRate)* headCellFiringRates(i,0)) * velocityCellFiringRate).matrix ());
             temp_matrix4 = temp_matrix2;
         }
 
-        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_P_V) * (visionCellSynapses * visionCellFiringRate)).matrix ();
+        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_G_V) * (visionCellSynapses * visionCellFiringRate)).matrix ();
 
         mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3 + temp_matrix4;
 
@@ -181,8 +183,8 @@ GridCells::UpdateActivation (
     }
 
     ROS_DEBUG("%s: Recurrent term: [%f, %f]" , mIdentifier.c_str (), temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
-/*     ROS_DEBUG("%s: Velocity term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
- */
+    ROS_DEBUG("%s: Velocity term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
+
     ROS_DEBUG("%s: Vision term: [%f,%f]" , mIdentifier.c_str (), temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
 
     ROS_DEBUG("%s: Firing rate term: [%f,%f]" , mIdentifier.c_str (),temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());

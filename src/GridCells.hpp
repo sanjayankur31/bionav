@@ -159,11 +159,11 @@ class GridCells: public Bionav::NeuronSet
 
         /*  Handle these. Put them in their classes */
         double mPhi0;
-        double mC_P;
+        double mC_G;
         double mInhibitionRate;
         double mPhi1;
-        double mC_P_HD_Vel;
-        double mC_P_V;
+        double mC_G_HD_Vel;
+        double mC_G_V;
         double mPhi2;
 
 }; /* -----  end of class GridCells  ----- */

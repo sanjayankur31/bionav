@@ -240,7 +240,7 @@ class Bionavigator
         struct location mInitialLocation;
         struct location mLocationPrev;
         bool mIsInitialLocationSet;
-        double mSigmaP;
+        double mSigmaG;
         bool mIsGridCellSetCalibrated;                     /**< Is the grid cell set calibrated */
 
         std::ofstream mDebugFile;
