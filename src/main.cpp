@@ -38,10 +38,9 @@ main ( int argc, char **argv )
      *  training is the same in each run. No point doing it again and again. */
     bionavigator->Calibrate ();
 /*     bionavigator->SetInitialDirection ();
+ *     bionavigator->SetInitialLocation ();
  */
 
-/*     bionavigator->SetInitialLocation ();
- */
 
 
 
