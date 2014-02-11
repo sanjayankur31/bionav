@@ -246,8 +246,7 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
-/*     CalibrateHDSet ();
- */
+    CalibrateHDSet ();
     CalibrateGridCellSet ();
 
 }		/* -----  end of method Bionavigator::Calibrate  ----- */
@@ -405,14 +404,12 @@ Bionavigator::CalibrateGridCellSet (  )
         /*  Recurrent synapse update: only required once */
         mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
 
-/*         for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
- *         {
- *             Eigen::Matrix<double, 1, 1> temp;
- *             temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
- *             mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
- *         }
- */
-
+        for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        {
+            Eigen::Matrix<double, 1, 1> temp;
+            temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+            mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+        }
 
         /*  Activate trace. This will hold f(t-1) always */
         mpGridCells->UpdateFiringRateTrace ();
@@ -431,6 +428,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
     /*  Westwords one by one */
     mpGridCells->Init ();
+    mpHDCells->Init ();
     preferred_direction_for_iteration = mInitialHeading + 90;
 
     if (preferred_direction_for_iteration > 360)
@@ -491,13 +489,13 @@ Bionavigator::CalibrateGridCellSet (  )
         /*  Recurrent synapse update: only required once */
         mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
 
-/*         for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
- *         {
- *             Eigen::Matrix<double, 1, 1> temp;
- *             temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
- *             mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
- *         }
- */
+        for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        {
+            Eigen::Matrix<double, 1, 1> temp;
+            temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+            mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+        }
+
 
 
         /*  Activate trace. This will hold f(t-1) always */
@@ -517,10 +515,13 @@ Bionavigator::CalibrateGridCellSet (  )
 
     /*  Forward by one */
     mpGridCells->Init ();
+    mpHDCells->Init ();
+
     /*  Since the distance isn't 1 unit, it's root(3) */
-    firing_rate_for_training = 2* 0.8660254037844386;
-    mpVisionCells->DisableForceFire ();
-    mpVisionCells->EnableForceFire(firing_rate_for_training);
+/*     firing_rate_for_training = 2* 0.8660254037844386;
+ *     mpVisionCells->DisableForceFire ();
+ *     mpVisionCells->EnableForceFire(firing_rate_for_training);
+ */
 
     preferred_direction_for_iteration = mInitialHeading;
 
@@ -533,6 +534,8 @@ Bionavigator::CalibrateGridCellSet (  )
     mpHDCells->UpdateFiringRate(delta_s_hd, mSigmaHD);
     for (int i = 0; i <  grid_cells_side_length; i++)
     {
+/*         for (int j = 0; j < 2; j+=2)
+ */
         for (int j = 0; j < grid_cells_side_length; j+=2)
         {
 
@@ -540,15 +543,14 @@ Bionavigator::CalibrateGridCellSet (  )
             ss << i << j;
 
             ROS_DEBUG("Forward Grid cell calibration iteration 1: %d-%d",i,j);
-            double preferred_x_for_iteration = preferred_x(i, 0);
+            double preferred_x_for_iteration = preferred_x((10 * j) + i, 0);
             double preferred_y_for_iteration = preferred_y((10 * j) + i, 0);
             ROS_DEBUG("Preferred x,y for this iteration is: %f, %f",preferred_x_for_iteration, preferred_y_for_iteration);
 
             delta_s_g_sq = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpGridCells->DimensionX (), 1);
 
             delta_x = (preferred_x.array () - preferred_x_for_iteration).abs ();
-            max_delta_x  = (10 - delta_x.array ()); 
-            max_delta_x = max_delta_x.array ().abs ();
+            max_delta_x  = (10 - delta_x.array ()).abs (); 
 
 
             delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
@@ -560,20 +562,20 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_x.array ().square () + delta_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
             mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
-/* 
- *             for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
- *             {
- *                 Eigen::Matrix<double, 1, 1> temp;
- *                 temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
- *                 mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
- *             }
- * 
- */
+
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+            }
+
+
 
 
             /*  Activate trace. This will hold f(t-1) always */
@@ -594,13 +596,15 @@ Bionavigator::CalibrateGridCellSet (  )
     for (int i = 0; i <  grid_cells_side_length; i++)
     {
         for (int j = 1; j < grid_cells_side_length; j+=2)
+/*         for (int j = 1; j < 2; j+=2)
+ */
         {
 
             std::ostringstream ss;
             ss << i << j;
 
             ROS_DEBUG("Forward Grid cell calibration iteration 2: %d-%d",i,j);
-            double preferred_x_for_iteration = preferred_x(i, 0);
+            double preferred_x_for_iteration = preferred_x((10 * j) + i, 0);
             double preferred_y_for_iteration = preferred_y((10 * j) + i, 0);
             ROS_DEBUG("Preferred x,y for this iteration is: %f, %f",preferred_x_for_iteration, preferred_y_for_iteration);
 
@@ -615,26 +619,25 @@ Bionavigator::CalibrateGridCellSet (  )
             max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
 
             delta_g_x = delta_x.cwiseMin(max_delta_x);
+            ROS_DEBUG_STREAM("delta x is: " << delta_x.transpose ());
+            ROS_DEBUG_STREAM("max delta x is: " << max_delta_x.transpose ());
             ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
 
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_x.array ().square () + delta_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
             mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
 
-/*             for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
- *             {
- *                 Eigen::Matrix<double, 1, 1> temp;
- *                 temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
- *                 mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
- *             }
- * 
- * 
- */
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+            }
 
             /*  Activate trace. This will hold f(t-1) always */
             mpGridCells->UpdateFiringRateTrace ();
@@ -650,8 +653,6 @@ Bionavigator::CalibrateGridCellSet (  )
     mpGridCells_HD_VelocitySynapseSet[50]->PrintToFile(std::string("Calibrated-Grid-HD50-V-synapse-N2.txt"));
     mpGridCells_HD_VelocitySynapseSet[25]->PrintToFile(std::string("Calibrated-Grid-HD25-V-synapse-N2.txt"));
     mpGridCells_HD_VelocitySynapseSet[75]->PrintToFile(std::string("Calibrated-Grid-HD75-V-synapse-N2.txt"));
-
-    
 
     /*  Backward by one */
     mpGridCells->Init ();
@@ -695,21 +696,18 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_x.array ().square () + delta_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
             mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
 
-/*             for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
- *             {
- *                 Eigen::Matrix<double, 1, 1> temp;
- *                 temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
- *                 mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
- *             }
- * 
- * 
- */
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+            }
 
             /*  Activate trace. This will hold f(t-1) always */
             mpGridCells->UpdateFiringRateTrace ();
@@ -755,20 +753,18 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_x.array ().square () + delta_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
             mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
-/* 
- *             for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
- *             {
- *                 Eigen::Matrix<double, 1, 1> temp;
- *                 temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
- *                 mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
- *             }
- * 
- */
+
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+            }
 
 
             /*  Activate trace. This will hold f(t-1) always */
@@ -791,7 +787,6 @@ Bionavigator::CalibrateGridCellSet (  )
  *     mpGridCellsSynapseSet->Normalize ();
  *     mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-final-normalized.txt"));
  *     return;
- * 
  */
 
 
@@ -1215,7 +1210,7 @@ Bionavigator::SetInitialLocation ( )
     mpGridCells->PrintActivationToFile(std::string("Before-Forced-GridCells-Activation.txt"));
     mpGridCells_VisionSynapseSet->SetStiff ();
     mpVisionCells->EnableForceFire (1.0);
-    mpGridCells->InhibitionRate (0.02);
+    mpGridCells->InhibitionRate (0.01);
 
     /*
      * Find a good number of iterations. Optimize it.
