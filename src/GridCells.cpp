@@ -37,7 +37,7 @@ GridCells::GridCells ()
     mC_G = (double)(mDimensionX);
     mC_G_V = (double)(mDimensionX);
 
-    mPhi0 = (double)(10.0 * mC_G);
+    mPhi0 = (double)(8.0 * mC_G);
 
     mPhi1 = (double)(1.0 * mC_G_HD_Vel);
     mPhi2 = (double)(10.0 * mC_G_V);

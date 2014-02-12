@@ -324,7 +324,9 @@ Bionavigator::CalibrateGridCellSet (  )
         {
 
             preferred_x ((grid_cells_side_length * j) + k, 0) = k + half;
-            preferred_y ((grid_cells_side_length * j) + k, 0) = j * 0.8660254037844386;
+            /*  Let it be normal co-ordinates. Multiply by 3/4 when calculating
+             *  distance */
+            preferred_y ((grid_cells_side_length * j) + k, 0) = j;
         }
 
         /*  we need to alternate the x as halves and fulls for grid cells since
@@ -337,7 +339,7 @@ Bionavigator::CalibrateGridCellSet (  )
     }
 
     ROS_DEBUG_STREAM("preferred_x is:" << preferred_x.transpose ());
-    ROS_DEBUG_STREAM("preferred_y is:" << preferred_y.transpose ());
+    ROS_DEBUG_STREAM("preferred_y is:" << (preferred_y.transpose ().array () * (sqrt(3.0)/2.0)) );
 
     mpGridCellsSynapseSet->Init ();
     mpGridCells->Init ();
@@ -382,7 +384,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
 
         delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
-        max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
+        max_delta_y  = ((10) - delta_y.array ()).abs ();
 
         delta_g_x = delta_x.cwiseMin(max_delta_x);
         ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
@@ -391,7 +393,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
         /*  Do not square root since its squared again in the firing rate
          *  method */
-        delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
+        delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
 /*         ROS_DEBUG_STREAM("Distance is " << delta_s_g_sq.transpose ());
  */
         /*  Calculate firing rate for this iteration */
@@ -467,7 +469,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
 
         delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
-        max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
+        max_delta_y  = ((10) - delta_y.array ()).abs ();
 
         delta_g_x = delta_x.cwiseMin(max_delta_x);
         ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
@@ -476,7 +478,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
         /*  Do not square root since its squared again in the firing rate
          *  method */
-        delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
+        delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
 /*         ROS_DEBUG_STREAM("Distance is " << delta_s_g_sq.transpose ());
  */
         /*  Calculate firing rate for this iteration */
@@ -554,7 +556,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
 
             delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
-            max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
+            max_delta_y  = ((10) - delta_y.array ()).abs ();
 
             delta_g_x = delta_x.cwiseMin(max_delta_x);
             ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
@@ -562,7 +564,7 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
@@ -616,7 +618,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
 
             delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
-            max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
+            max_delta_y  = ((10) - delta_y.array ()).abs ();
 
             delta_g_x = delta_x.cwiseMin(max_delta_x);
             ROS_DEBUG_STREAM("delta x is: " << delta_x.transpose ());
@@ -626,7 +628,7 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
@@ -688,7 +690,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
 
             delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
-            max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
+            max_delta_y  = ((10) - delta_y.array ()).abs ();
 
             delta_g_x = delta_x.cwiseMin(max_delta_x);
             ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
@@ -696,7 +698,7 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
@@ -745,7 +747,7 @@ Bionavigator::CalibrateGridCellSet (  )
 
 
             delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
-            max_delta_y  = ((10 * 0.8660254037844386) - delta_y.array ()).abs ();
+            max_delta_y  = ((10) - delta_y.array ()).abs ();
 
             delta_g_x = delta_x.cwiseMin(max_delta_x);
             ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
@@ -753,7 +755,7 @@ Bionavigator::CalibrateGridCellSet (  )
             delta_g_y = delta_y.cwiseMin(max_delta_y);
             ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
 
-            delta_s_g_sq = (delta_g_x.array ().square () + delta_g_y.array (). square ());
+            delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
 
             /*  Calculate firing rate for this iteration */
             mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
@@ -1263,9 +1265,9 @@ Bionavigator::SetInitialLocation ( )
         mpGridCells->UpdateFiringRateTrace ();
         mpGridCells->FiringRates ();
 
-        mLocation.x = mpGridCells->CurrentLocation ()/10.0;
+        mLocation.x = floor(mpGridCells->CurrentLocation ()/10);
         mLocation.y = (int)(mpGridCells->CurrentLocation ()) % 10;
-        ROS_DEBUG("Location is now: [%f, %f]",mLocation.x, mLocation.y);
+        ROS_DEBUG("Location is now: neuron: %f at [%f, %f]",mpGridCells->CurrentLocation (), mLocation.x, mLocation.y);
 
         /*  Learning still occurs! */
 /*         mpGridSynapseSet->UpdateWeight (mpGridCells->FiringRateTrace (), mpGridCells->FiringRate ().transpose ());
