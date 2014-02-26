@@ -22,6 +22,7 @@
 
 #include "NeuronSet.hpp"
 #include "std_msgs/Float64.h"
+#include <cmath>
 /*
  * =====================================================================================
  *        Class:  VelocityCell
@@ -73,6 +74,9 @@ class VelocityCell: public Bionav::NeuronSet
         /* ====================  METHODS       ======================================= */
 
         /* ====================  DATA MEMBERS  ======================================= */
+        double mAlpha;
+        double mBeta;
+        
 
 }; /* -----  end of class VelocityCell  ----- */
 

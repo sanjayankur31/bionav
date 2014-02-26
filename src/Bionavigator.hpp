@@ -36,6 +36,7 @@
 #include <ros/console.h>
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/Float64.h"
+#include "std_msgs/Float64MultiArray.h"
 #include <sstream>
 #include <fstream>
 #include <cmath>
@@ -162,7 +163,7 @@ class Bionavigator
          *
          * @param None
          *
-         * @return mHeadDirection the updated head direction
+         * @return None
          */
         void HeadDirection (double angularVelocityY);
 
@@ -180,9 +181,9 @@ class Bionavigator
          *
          * @param None
          *
-         * @return mHeadDirection the updated head direction
+         * @return None
          */
-        void Location (double angularVelocityY);
+        void GridLocation (double angularVelocityY);
 
         /**
          * @brief Helper function
@@ -244,6 +245,9 @@ class Bionavigator
         double mSigmaG;
         bool mIsGridCellSetCalibrated;                     /**< Is the grid cell set calibrated */
 
+        double mVelocity;
+
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mGridHeatMap;    /**< Trace firing rates of neurons */
         std::ofstream mDebugFile;
 }; /* -----  end of class Bionavigator  ----- */
 

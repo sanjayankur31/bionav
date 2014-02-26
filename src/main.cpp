@@ -41,11 +41,11 @@ main ( int argc, char **argv )
      *  projecting on grid cells at this point. The velocity cell isn't firing
      *  so this shouldn't be a problem any way */
     bionavigator->SetInitialLocation ();
-/*     bionavigator->SetInitialDirection ();
- */
+    bionavigator->SetInitialDirection ();
 
-/*     ros::spin();
- */
+
+    ros::spin();
+
 
 
     return 0;

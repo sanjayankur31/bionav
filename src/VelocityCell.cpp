@@ -29,6 +29,8 @@
  */
 VelocityCell::VelocityCell ()
 {
+    mBeta = 0.5;
+    mAlpha = 0;
 }  /* -----  end of method VelocityCell::VelocityCell  (constructor)  ----- */
 
 /*
@@ -77,17 +79,14 @@ VelocityCell::operator = ( const VelocityCell &other )
  *--------------------------------------------------------------------------------------
  */
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
-VelocityCell::UpdateFiringRate (double angularVelocity )
+VelocityCell::UpdateFiringRate (double velocity )
 {
-    /*
-     * Greater than 0 is clockwise for me
-     */
-    if (angularVelocity > 0)
-        mFiringRate << (1.0 * angularVelocity);
+    double temp = (1.0/(1.0 +( exp(-2.0 * mBeta * (velocity -mAlpha)))));
+    //ROS_DEBUG_STREAM (mIdentifier << ": Firing rate is: " << mFiringRate);
+    if (temp > 0)
+        mFiringRate << temp;
     else 
         mFiringRate << 0;
-
-    //ROS_DEBUG_STREAM (mIdentifier << ": Firing rate is: " << mFiringRate);
 
     return mFiringRate;
 }		/* -----  end of method VelocityCell::UpdateFiringRate  ----- */

@@ -28,6 +28,8 @@
  */
 RotationCellCounterClockwise::RotationCellCounterClockwise ()
 {
+    mBeta = 1;
+    mAlpha = 0;
 }  /* -----  end of method RotationCellCounterClockwise::RotationCellCounterClockwise  (constructor)  ----- */
 
 /*
@@ -79,11 +81,17 @@ RotationCellCounterClockwise::UpdateFiringRate (double angularVelocity )
     /*
      * Greater than 0 is clockwise for me
      */
-    if (angularVelocity <= 0)
-        mFiringRate << (-1.00 * angularVelocity);
+    if (angularVelocity > 0)
+    {
+        double temp = (1.0/(1.0 +( exp(-2.0 * mBeta * ((-1.0 * angularVelocity) -mAlpha)))));
+
+        if (temp > 0)
+            mFiringRate << temp;
+        else 
+            mFiringRate << 0;
+    } 
     else 
         mFiringRate << 0;
-
     //ROS_DEBUG_STREAM (mIdentifier << ": Firing rate is: " << mFiringRate);
 
     return mFiringRate;

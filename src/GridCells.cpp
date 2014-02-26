@@ -37,9 +37,9 @@ GridCells::GridCells ()
     mC_G = (double)(mDimensionX);
     mC_G_V = (double)(mDimensionX);
 
-    mPhi0 = (double)(8.0 * mC_G);
+    mPhi0 = (double)(10 * mC_G);
 
-    mPhi1 = (double)(1.0 * mC_G_HD_Vel);
+    mPhi1 = (double)(0.1 * mC_G_HD_Vel);
     mPhi2 = (double)(10.0 * mC_G_V);
     mAlpha = 1.5;
     /*  Beta controls the slope of the function we're using for firing rate
@@ -168,7 +168,9 @@ GridCells::UpdateActivation (
         for (int j  = 0 ; j < mDimensionX; j ++)
         {
             temp_matrix5 = velocityCellSynapses[i]->WeightMatrix();
-            temp_matrix2 = temp_matrix4 + ((mDeltaT/mTau * mPhi1/mC_G_HD_Vel)*((((temp_matrix5.array () - mInhibitionRate).matrix () * mFiringRate)* headCellFiringRates(i,0)) * velocityCellFiringRate).matrix ());
+            temp_matrix2 = temp_matrix4 + ((mDeltaT/mTau * mPhi1/mC_G_HD_Vel)*(((temp_matrix5 * mFiringRate)* headCellFiringRates(i,0)) * velocityCellFiringRate).matrix ());
+/*             temp_matrix2 = temp_matrix4 + ((mDeltaT/mTau * mPhi1/mC_G_HD_Vel)*((((temp_matrix5.array () - mInhibitionRate).matrix () * mFiringRate)* headCellFiringRates(i,0)) * velocityCellFiringRate).matrix ());
+ */
             temp_matrix4 = temp_matrix2;
         }
 
@@ -187,6 +189,7 @@ GridCells::UpdateActivation (
 
     ROS_DEBUG("%s: Firing rate term: [%f,%f]" , mIdentifier.c_str (),temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
     ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+
 }		/* -----  end of method GridCells::UpdateActivation  ----- */
 
 
