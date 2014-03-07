@@ -39,7 +39,7 @@ GridCells::GridCells ()
 
     mPhi0 = (double)(10 * mC_G);
 
-    mPhi1 = (double)(0.1 * mC_G_HD_Vel);
+    mPhi1 = (double)(0.001 * mC_G_HD_Vel);
     mPhi2 = (double)(10.0 * mC_G_V);
     mAlpha = 1.5;
     /*  Beta controls the slope of the function we're using for firing rate
