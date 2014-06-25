@@ -31,25 +31,40 @@ Bionavigator::Bionavigator ()
     mpRotationCellCounterClockwise  = new RotationCellCounterClockwise ();
     mpRotationCellClockwise = new RotationCellClockwise ();
     mpVisionCells = new VisionCells ();
+    mpGridCells = new GridCells ();
+    mpVelocityCell = new VelocityCell ();
 
     mpHDSynapseSet = new HDSynapseSet ();
+    mpGridCellsSynapseSet = new GridCellsSynapseSet ();
+
     mpHD_VisionSynapseSet = new HD_VisionSynapseSet ();
+    mpGridCells_VisionSynapseSet = new GridCells_VisionSynapseSet ();
+
     mpHD_RotationCellClockwiseSynapseSet = new HD_RotationSynapseSet ();
     mpHD_RotationCellCounterClockwiseSynapseSet = new HD_RotationSynapseSet ();
+    
+    mpGridCells_HD_VelocitySynapseSet.resize (100);
+    for (int i = 0; i < 100; i++)
+    {
+        mpGridCells_HD_VelocitySynapseSet[i] = new GridCells_HD_VelocitySynapseSet ();
+    }
 
 
-    mInitialHeading = 180;
+    /*  Index + 1 of whatever cell is to be activated. So must be >= 1 */
+    mInitialHeading = 1;
+    mInitialLocation.x = 0;
+    mInitialLocation.y = 0;
     mCount = 0;
     mCountTillFreq = 0;
     mProcessFreq = 10;
     mPositive = 0;
     mNegative = 0;
     mScale = 1.0;
+    mVelocity = 0.0;
 
     /*  sigma controls the width of the gaussian. Smaller sigma, smaller width */
     mSigmaHD = 10;
-
-    mpAngularVelocityArray = new double[10];
+    mSigmaG = 0.8;
 
     mDebugFile.open("0000-Master-debug.txt");
 
@@ -89,7 +104,13 @@ Bionavigator::~Bionavigator ()
     delete mpHD_RotationCellClockwiseSynapseSet;
     delete mpHD_RotationCellCounterClockwiseSynapseSet;
 
-    delete mpAngularVelocityArray;
+    delete mpGridCells;
+    delete mpGridCells_VisionSynapseSet;
+    delete mpGridCellsSynapseSet;
+    for (int i = 0; i < 100; i++)
+    {
+        delete mpGridCells_HD_VelocitySynapseSet[i];
+    }
 }  /* -----  end of method Bionavigator::~Bionavigator  (destructor)  ----- */
 
 /*
@@ -135,6 +156,13 @@ Bionavigator::Init (  )
     mpHDCells->DisableForceFire ();
     ROS_DEBUG("%s: Initialized", (mpHDCells->Identifier()).c_str ());
 
+    /*  Set up grid cells */
+    mpGridCells->SetDimension (head_cell_dimension_x, head_cell_dimension_y);
+    mpGridCells->SetIdentifier (std::string("Grid Cells"));
+    mpGridCells->Init ();
+    mpGridCells->DisableForceFire ();
+    ROS_DEBUG("%s: Initialized", (mpGridCells->Identifier()).c_str ());
+
     /*  Rotation Cells */
     mpRotationCellCounterClockwise->SetDimension(1,1);
     mpRotationCellCounterClockwise->SetIdentifier(std::string("Rotation cell counter clockwise"));
@@ -148,6 +176,13 @@ Bionavigator::Init (  )
     mpRotationCellClockwise->DisableForceFire ();
     ROS_DEBUG("%s: Initialized", (mpRotationCellClockwise->Identifier()).c_str ());
 
+    /*  Velocity cell */
+    mpVelocityCell->SetDimension(1,1);
+    mpVelocityCell->SetIdentifier(std::string("Velocity Cell"));
+    mpVelocityCell->Init ();
+    mpVelocityCell->DisableForceFire ();
+    ROS_DEBUG("%s: Initialized", (mpVelocityCell->Identifier()).c_str ());
+
     /*  For the time being */
     mpVisionCells->SetDimension(1, 1);
     mpVisionCells->SetIdentifier(std::string("Vision cell set"));
@@ -160,6 +195,11 @@ Bionavigator::Init (  )
     mpHDSynapseSet->Init ();
     ROS_DEBUG("%s: Initialized", (mpHDSynapseSet->Identifier()).c_str ());
 
+    /*  GridCellsSynapseSet */
+    mpGridCellsSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_x);
+    mpGridCellsSynapseSet->SetIdentifier(std::string("Grid Cells - CANN synapse set"));
+    mpGridCellsSynapseSet->Init ();
+    ROS_DEBUG("%s: Initialized", (mpGridCellsSynapseSet->Identifier()).c_str ());
 
     /*  This is effective synaptic weight: HDx HDy and the Rotation cell. So,
      *  dimension is 100x100, not 100x1 here. */
@@ -173,11 +213,28 @@ Bionavigator::Init (  )
     mpHD_RotationCellClockwiseSynapseSet->Init ();
     ROS_DEBUG("%s: Initialized", (mpHD_RotationCellClockwiseSynapseSet->Identifier()).c_str ());
 
+    /*  Effective synapse set */
+    for ( int i = 0; i < head_cell_dimension_x; i++)
+    {
+        std::ostringstream ss;
+        ss << "Grid Cells - HD - velocity cell synapse set - " << i;
+        mpGridCells_HD_VelocitySynapseSet[i]->SetDimension(head_cell_dimension_x,head_cell_dimension_x);
+                mpGridCells_HD_VelocitySynapseSet[i]->SetIdentifier(ss.str ());
+        mpGridCells_HD_VelocitySynapseSet[i]->Init ();
+        ROS_DEBUG("%s: Initialized", (mpGridCells_HD_VelocitySynapseSet[i]->Identifier()).c_str ());
+    }
+
     mpHD_VisionSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_y);
     mpHD_VisionSynapseSet->SetIdentifier(std::string("HD - Vision cell synapse set"));
     mpHD_VisionSynapseSet->Init ();
     ROS_DEBUG("%s: Initialized", (mpHD_VisionSynapseSet->Identifier()).c_str ());
 
+    mpGridCells_VisionSynapseSet->SetDimension(head_cell_dimension_x, head_cell_dimension_y);
+    mpGridCells_VisionSynapseSet->SetIdentifier(std::string("Grid Cells - Vision cell synapse set"));
+    mpGridCells_VisionSynapseSet->Init ();
+
+    mGridHeatMap = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (head_cell_dimension_x, head_cell_dimension_y);
+    ROS_DEBUG("%s: Initialized", (mpGridCells_VisionSynapseSet->Identifier()).c_str ());
 
 
 }		/* -----  end of method Bionavigator::Init  ----- */
@@ -193,7 +250,452 @@ Bionavigator::Init (  )
     void
 Bionavigator::Calibrate (  )
 {
-    ROS_DEBUG("Calibrating system");
+    CalibrateHDSet ();
+    CalibrateGridCellSet ();
+
+}		/* -----  end of method Bionavigator::Calibrate  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: CalibrateGridCellSet
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::CalibrateGridCellSet (  )
+{
+    ROS_DEBUG("Calibrating Grid Cell system");
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s_hd;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s_g_sq;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_x;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_y;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_y;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_g_x;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_g_y;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> max_delta_x;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> max_delta_y;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_x_hd;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> threesixty_delta_x_hd;
+    double preferred_direction_for_iteration;
+    const double PI  =3.141592653589793238462;
+    double firing_rate_for_training;
+    double grid_cells_side_length = sqrt (mpGridCells->DimensionX ());
+    ROS_DEBUG("grid cell side length is: %f", grid_cells_side_length);
+    double half = 0;
+
+
+    firing_rate_for_training = 1;
+
+    /*  Ensure all synapses are plastic here */
+    mpGridCellsSynapseSet->SetPlastic ();
+    for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        mpGridCells_HD_VelocitySynapseSet[i]->SetPlastic ();
+
+    delta_s_hd.resize(mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_s_g_sq.resize(mpGridCells->DimensionX (), mpGridCells->DimensionY ());
+
+    delta_x_hd.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
+    threesixty_delta_x_hd.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
+
+    delta_x.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    delta_y.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    max_delta_x.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    max_delta_y.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    delta_g_x.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    delta_g_y.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+
+    /*  We set the preferred head directions uniformly */
+    preferred_x.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    preferred_y.resize(mpGridCells->DimensionX (),mpGridCells->DimensionY () );
+    preferred_directions.resize(mpHDCells->DimensionX (),mpHDCells->DimensionY () );
+
+    /*  Set up preferred directions of head direction cells */
+    for (double i = (360.0/mpHDCells->DimensionX ()), j = 0; i <= 360; i+=(360.0/mpHDCells->DimensionX ()), j++)
+    {
+        preferred_directions (j, 0) = i;
+    }
+
+    half = 0.0;
+    /*  Set up preferred locations of grid cells */
+    for (double j = 0.0; j < grid_cells_side_length; j++)
+    {
+
+        for (double k = 0.0; k < grid_cells_side_length; k++)
+        {
+
+            preferred_x ((grid_cells_side_length * j) + k, 0) = k + half;
+            /*  Let it be normal co-ordinates. Multiply by 3/4 when calculating
+             *  distance */
+            preferred_y ((grid_cells_side_length * j) + k, 0) = j;
+        }
+
+        /*  we need to alternate the x as halves and fulls for grid cells since
+         *  they're equilateral trianges */
+
+        if (half == 0)
+            half = 0.5;
+        else if (half == 0.5)
+            half = 0;
+    }
+
+    ROS_DEBUG_STREAM("preferred_x is:" << preferred_x.transpose ());
+    ROS_DEBUG_STREAM("preferred_y is:" << (preferred_y.transpose ().array () * (sqrt(3.0)/2.0)) );
+
+    mpGridCellsSynapseSet->Init ();
+    mpGridCells->Init ();
+
+    mpVelocityCell->EnableForceFire (firing_rate_for_training);
+
+    /*  Right one by one */
+    preferred_direction_for_iteration = mInitialHeading - 90;
+
+    if (preferred_direction_for_iteration < 0)
+        preferred_direction_for_iteration += 360;
+
+    delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    threesixty_delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_x_hd = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+    threesixty_delta_x_hd = (360 - delta_x_hd.array ());
+    delta_s_hd = delta_x_hd.cwiseMin (threesixty_delta_x_hd); /* We have s^(HD)_i */
+
+    mpHDCells->UpdateFiringRate(delta_s_hd, mSigmaHD);
+    for (int i = 0; i <  mpGridCells->DimensionX (); i++)
+/*     for (int i = 0; i < 20; i++)
+ */
+    {
+        std::ostringstream ss;
+        ss << i;
+
+        ROS_DEBUG("Right Grid cell calibration iteration: %d",i);
+        double preferred_x_for_iteration = preferred_x(i, 0);
+        double preferred_y_for_iteration = preferred_y(i, 0);
+        ROS_DEBUG("Preferred x,y for this iteration is: %f, %f",preferred_x_for_iteration, preferred_y_for_iteration);
+
+        delta_s_g_sq = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpGridCells->DimensionX (), 1);
+
+        delta_x = (preferred_x.array () - preferred_x_for_iteration).abs ();
+        max_delta_x = (10 - delta_x.array ());
+        max_delta_x =  max_delta_x.array().abs ();
+
+        delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
+        max_delta_y  = ((10) - delta_y.array ()).abs ();
+
+        delta_g_x = delta_x.cwiseMin(max_delta_x);
+        ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
+        delta_g_y = delta_y.cwiseMin(max_delta_y);
+        ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
+
+        /*  Do not square root since its squared again in the firing rate
+         *  method */
+        delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
+/*         ROS_DEBUG_STREAM("Distance is " << delta_s_g_sq.transpose ());
+ */
+        /*  Calculate firing rate for this iteration */
+        mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
+
+/*         ROS_DEBUG_STREAM("Grid cell firing rate is:" << mpGridCells->FiringRate().transpose ());
+ */
+
+
+        /*  Recurrent synapse update: only required once */
+        mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
+
+        for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        {
+            Eigen::Matrix<double, 1, 1> temp;
+            temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+            mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+        }
+
+        /*  Activate trace. This will hold f(t-1) always */
+        mpGridCells->UpdateFiringRateTrace ();
+
+/*         mpGridCells->PrintFiringRateToFile((std::string("Calibrating-GridCells-FiringRate-E-") + ss.str () + std::string(".txt")));
+ *         mpGridCellsSynapseSet->PrintToFile((std::string("Calibrating-Grid-synapse-E-") + ss.str () + std::string(".txt")));
+ *         mpGridCells_HD_VelocitySynapseSet[i]->PrintToFile((std::string("Calibrating-Grid-HD-V-synapse-E-") + ss.str () + std::string(".txt")));
+ */
+    }
+
+    mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-E.txt"));
+    mpGridCells_HD_VelocitySynapseSet[50]->PrintToFile(std::string("Calibrated-Grid-HD50-V-synapse-E.txt"));
+    mpGridCells_HD_VelocitySynapseSet[25]->PrintToFile(std::string("Calibrated-Grid-HD25-V-synapse-E.txt"));
+    mpGridCells_HD_VelocitySynapseSet[75]->PrintToFile(std::string("Calibrated-Grid-HD75-V-synapse-E.txt"));
+
+
+    /*  Left one by one */
+    mpGridCells->Init ();
+    mpHDCells->Init ();
+    preferred_direction_for_iteration = mInitialHeading + 90;
+
+    if (preferred_direction_for_iteration > 360)
+        preferred_direction_for_iteration -= 360;
+
+    delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    threesixty_delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_x_hd = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+    threesixty_delta_x_hd = (360 - delta_x_hd.array ());
+    delta_s_hd = delta_x_hd.cwiseMin (threesixty_delta_x_hd); /* We have s^(HD)_i */
+
+    mpHDCells->UpdateFiringRate(delta_s_hd, mSigmaHD);
+/*     for (int i =  0 ;  i > 0; i--)
+ */
+    for (int i =  mpGridCells->DimensionX () -1 ;  i >= 0; i--)
+    {
+        std::ostringstream ss;
+        ss << i;
+
+        ROS_DEBUG("Left Grid cell calibration iteration: %d",i);
+        double preferred_x_for_iteration = preferred_x(i, 0);
+        double preferred_y_for_iteration = preferred_y(i, 0);
+        ROS_DEBUG("Preferred x,y for this iteration is: %f, %f",preferred_x_for_iteration, preferred_y_for_iteration);
+
+        delta_s_g_sq = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpGridCells->DimensionX (), 1);
+
+        delta_x = (preferred_x.array () - preferred_x_for_iteration).abs ();
+        max_delta_x = (10 - delta_x.array ());
+        max_delta_x =  max_delta_x.array().abs ();
+
+
+        delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
+        max_delta_y  = ((10) - delta_y.array ()).abs ();
+
+        delta_g_x = delta_x.cwiseMin(max_delta_x);
+        ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
+        delta_g_y = delta_y.cwiseMin(max_delta_y);
+        ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
+
+        /*  Do not square root since its squared again in the firing rate
+         *  method */
+        delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
+/*         ROS_DEBUG_STREAM("Distance is " << delta_s_g_sq.transpose ());
+ */
+        /*  Calculate firing rate for this iteration */
+        mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
+
+/*         ROS_DEBUG_STREAM("Grid cell firing rate is:" << mpGridCells->FiringRate().transpose ());
+ */
+        /*  Recurrent synapse update: only required once */
+        mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
+
+        for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+        {
+            Eigen::Matrix<double, 1, 1> temp;
+            temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+            mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+        }
+
+        /*  Activate trace. This will hold f(t-1) always */
+        mpGridCells->UpdateFiringRateTrace ();
+
+/*         mpGridCells->PrintFiringRateToFile((std::string("Calibrating-GridCells-FiringRate-W-") + ss.str () + std::string(".txt")));
+ *         mpGridCellsSynapseSet->PrintToFile((std::string("Calibrating-Grid-synapse-W-") + ss.str () + std::string(".txt")));
+ *         mpGridCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Grid-HD-V-synapse-W-") + ss.str () + std::string(".txt")));
+ */
+
+    }
+    mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-W.txt"));
+    mpGridCells_HD_VelocitySynapseSet[50]->PrintToFile(std::string("Calibrated-Grid-HD50-V-synapse-W.txt"));
+    mpGridCells_HD_VelocitySynapseSet[25]->PrintToFile(std::string("Calibrated-Grid-HD25-V-synapse-W.txt"));
+    mpGridCells_HD_VelocitySynapseSet[75]->PrintToFile(std::string("Calibrated-Grid-HD75-V-synapse-W.txt"));
+
+
+    /*  Forward by one */
+    mpGridCells->Init ();
+    mpHDCells->Init ();
+
+    /*  Since the distance isn't 1 unit, it's root(3) */
+/*     firing_rate_for_training = 2* 0.8660254037844386;
+ *     mpVisionCells->DisableForceFire ();
+ *     mpVisionCells->EnableForceFire(firing_rate_for_training);
+ */
+
+    preferred_direction_for_iteration = mInitialHeading;
+
+    delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    threesixty_delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_x_hd = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+    threesixty_delta_x_hd = (360 - delta_x_hd.array ());
+    delta_s_hd = delta_x_hd.cwiseMin (threesixty_delta_x_hd); /* We have s^(HD)_i */
+
+    mpHDCells->UpdateFiringRate(delta_s_hd, mSigmaHD);
+    for (int i = 0; i <  grid_cells_side_length; i++)
+    {
+/*         for (int j = 0; j < 2; j+=2)
+ */
+        for (int j = 0; j < grid_cells_side_length; j++)
+        {
+
+            std::ostringstream ss;
+            ss << i << j;
+
+            ROS_DEBUG("Forward Grid cell calibration iteration 1: %d-%d",i,j);
+            double preferred_x_for_iteration = preferred_x((10 * j) + i, 0);
+            double preferred_y_for_iteration = preferred_y((10 * j) + i, 0);
+            ROS_DEBUG("Preferred x,y for this iteration is: %f, %f",preferred_x_for_iteration, preferred_y_for_iteration);
+
+            delta_s_g_sq = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpGridCells->DimensionX (), 1);
+
+            delta_x = (preferred_x.array () - preferred_x_for_iteration).abs ();
+            max_delta_x = (10 - delta_x.array ());
+            max_delta_x =  max_delta_x.array().abs ();
+
+            delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
+            max_delta_y  = ((10) - delta_y.array ()).abs ();
+
+            delta_g_x = delta_x.cwiseMin(max_delta_x);
+            ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
+
+            delta_g_y = delta_y.cwiseMin(max_delta_y);
+            ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
+
+            delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
+
+            /*  Calculate firing rate for this iteration */
+            mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
+            mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
+
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+            }
+
+
+
+
+            /*  Activate trace. This will hold f(t-1) always */
+            mpGridCells->UpdateFiringRateTrace ();
+
+/*             mpGridCells->PrintFiringRateToFile((std::string("Calibrating-GridCells-FiringRate-N-") + ss.str () + std::string(".txt")));
+ *             mpGridCellsSynapseSet->PrintToFile((std::string("Calibrating-Grid-synapse-N-") + ss.str () + std::string(".txt")));
+ *             mpGridCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Grid-HD-V-synapse-") + ss.str () + std::string(".txt")));
+ */
+
+        }
+    }
+    mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-N1.txt"));
+    mpGridCells_HD_VelocitySynapseSet[50]->PrintToFile(std::string("Calibrated-Grid-HD50-V-synapse-N1.txt"));
+    mpGridCells_HD_VelocitySynapseSet[25]->PrintToFile(std::string("Calibrated-Grid-HD25-V-synapse-N1.txt"));
+    mpGridCells_HD_VelocitySynapseSet[75]->PrintToFile(std::string("Calibrated-Grid-HD75-V-synapse-N1.txt"));
+
+
+    /*  Backward by one */
+    mpGridCells->Init ();
+    preferred_direction_for_iteration = mInitialHeading + 180;
+    if (preferred_direction_for_iteration >= 360)
+        preferred_direction_for_iteration -= 360;
+
+    delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    threesixty_delta_x_hd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (), mpHDCells->DimensionY ());
+    delta_x_hd = (preferred_directions.array () - preferred_direction_for_iteration).abs ();
+    threesixty_delta_x_hd = (360 - delta_x_hd.array ());
+    delta_s_hd = delta_x_hd.cwiseMin (threesixty_delta_x_hd); /* We have s^(HD)_i */
+
+    mpHDCells->UpdateFiringRate(delta_s_hd, mSigmaHD);
+    mpHDCells->PrintFiringRateToFile("HDCells-FiringRate-backward-grid-cell.txt");
+    for (int i = grid_cells_side_length -1 ; i >= 0; i--)
+    {
+        for (int j = grid_cells_side_length -1 ; j >= 0; j--)
+        {
+
+            std::ostringstream ss;
+            ss << i << j;
+
+            ROS_DEBUG("Backward Grid cell calibration iteration 1: %d-%d",i,j);
+            double preferred_x_for_iteration = preferred_x(i, 0);
+            double preferred_y_for_iteration = preferred_y((10 * j) + i, 0);
+            ROS_DEBUG("Preferred x,y for this iteration is: %f, %f",preferred_x_for_iteration, preferred_y_for_iteration);
+
+            delta_s_g_sq = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpGridCells->DimensionX (), 1);
+
+            delta_x = (preferred_x.array () - preferred_x_for_iteration).abs ();
+            max_delta_x = (10 - delta_x.array ());
+            max_delta_x =  max_delta_x.array().abs ();
+
+            delta_y = (preferred_y.array () - preferred_y_for_iteration).abs ();
+            max_delta_y  = ((10) - delta_y.array ()).abs ();
+
+            delta_g_x = delta_x.cwiseMin(max_delta_x);
+            ROS_DEBUG_STREAM("delta x final is: " << delta_g_x.transpose ());
+
+            delta_g_y = delta_y.cwiseMin(max_delta_y);
+            ROS_DEBUG_STREAM("delta y final is: " << delta_g_y.transpose ());
+
+            delta_s_g_sq = (delta_g_x.array ().square () + (3.0/4.0 * delta_g_y.array (). square ()));
+
+            /*  Calculate firing rate for this iteration */
+            mpGridCells->UpdateFiringRate(delta_s_g_sq, mSigmaG);
+            mpGridCellsSynapseSet->UpdateWeight (mpGridCells->FiringRate(), mpGridCells->FiringRate ().transpose ());
+
+            for ( int i = 0; i < mpHDCells->DimensionX (); i ++)
+            {
+                Eigen::Matrix<double, 1, 1> temp;
+                temp = (mpHDCells->FiringRate ())(i,0) * mpVelocityCell->FiringRate ().array ();
+                mpGridCells_HD_VelocitySynapseSet[i]->UpdateWeight (mpGridCells->FiringRate (), (mpGridCells->FiringRateTrace () * temp).transpose ());
+            }
+
+            /*  Activate trace. This will hold f(t-1) always */
+            mpGridCells->UpdateFiringRateTrace ();
+
+/*             mpGridCells->PrintFiringRateToFile((std::string("Calibrating-GridCells-FiringRate-S-") + ss.str () + std::string(".txt")));
+ *             mpGridCellsSynapseSet->PrintToFile((std::string("Calibrating-Grid-synapse-S-") + ss.str () + std::string(".txt")));
+ *             mpGridCells_HD_VelocitySynapseSet->PrintToFile((std::string("Calibrating-Grid-HD-V-synapse-") + ss.str () + std::string(".txt")));
+ */
+
+        }
+    }
+    mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-S1.txt"));
+    mpGridCells_HD_VelocitySynapseSet[50]->PrintToFile(std::string("Calibrated-Grid-HD50-V-synapse-S1.txt"));
+    mpGridCells_HD_VelocitySynapseSet[25]->PrintToFile(std::string("Calibrated-Grid-HD25-V-synapse-S1.txt"));
+    mpGridCells_HD_VelocitySynapseSet[75]->PrintToFile(std::string("Calibrated-Grid-HD75-V-synapse-S1.txt"));
+
+
+/*     mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-final.txt"));
+ *     mpGridCellsSynapseSet->Normalize ();
+ *     mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-final-normalized.txt"));
+ *     return;
+ */
+
+    mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-final.txt"));
+    mpGridCellsSynapseSet->Normalize ();
+    mpGridCellsSynapseSet->PrintToFile(std::string("Calibrated-Grid-synapse-final-normalized.txt"));
+
+    for (int i = 0; i < mpHDCells->DimensionX (); i++)
+    {
+        mpGridCells_HD_VelocitySynapseSet[i]->Normalize ();
+    }
+    mpGridCells_HD_VelocitySynapseSet[50]->PrintToFile(std::string("Calibrated-Grid-HD50-V-synapse-normalized.txt"));
+    mpGridCells_HD_VelocitySynapseSet[25]->PrintToFile(std::string("Calibrated-Grid-HD25-V-synapse-normalized.txt"));
+    mpGridCells_HD_VelocitySynapseSet[75]->PrintToFile(std::string("Calibrated-Grid-HD75-V-synapse-normalized.txt"));
+
+/*     ROS_DEBUG("%s calibrated to: [%f,%f]",mpGridCells_HD_VelocitySynapseSet->Identifier().c_str (), mpGridCells_HD_VelocitySynapseSet->Max (), mpGridCells_HD_VelocitySynapseSet->Min ());
+ */
+
+    /*  Disable all the force firing */
+    mpVelocityCell->DisableForceFire ();
+    mpGridCells->DisableForceFire ();
+
+    mIsGridCellSetCalibrated = true;
+    ROS_DEBUG("Grid cell Calibration complete");
+    return;
+}		/* -----  end of method Bionavigator::CalibrateGridCellSet  ----- */
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: CalibrateHDSet
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::CalibrateHDSet (  )
+{
+    ROS_DEBUG("Calibrating HD system");
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> delta_s;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> preferred_directions;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_hd_weights;
@@ -281,10 +783,12 @@ Bionavigator::Calibrate (  )
     ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellCounterClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellCounterClockwiseSynapseSet->Max (), mpHD_RotationCellCounterClockwiseSynapseSet->Min ());
 
 /*     mpHDSynapseSet->Normalize ();
+ *
+ *     Normalize after both iterations
  */
     mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-1.txt"));
-/*     mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
- */
+    mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
+
     mpHD_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Calibrated-RotationCellCounterClockwise-synapse.txt"));
     temp_hd_weights = mpHDSynapseSet->WeightMatrix ();
 
@@ -344,13 +848,13 @@ Bionavigator::Calibrate (  )
         /*  Counter clockwise stuff needed in this cycle. Save some computations, instead of it
          *  multiplying be zero in the end */
     }
-/*     mpHDSynapseSet->Normalize ();
- */
+
     mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-2.txt"));
     mpHDSynapseSet->AddToWeight(temp_hd_weights);
+    mpHDSynapseSet->Normalize ();
 
-/*     mpHD_RotationCellClockwiseSynapseSet->Normalize ();
- */
+    mpHD_RotationCellClockwiseSynapseSet->Normalize ();
+
     mpHDSynapseSet->PrintToFile(std::string("Calibrated-HD-synapse-final.txt"));
 
     ROS_DEBUG("%s calibrated to: [%f,%f]",mpHD_RotationCellClockwiseSynapseSet->Identifier().c_str (), mpHD_RotationCellClockwiseSynapseSet->Max (), mpHD_RotationCellClockwiseSynapseSet->Min ());
@@ -376,9 +880,9 @@ Bionavigator::Calibrate (  )
     mpHD_RotationCellClockwiseSynapseSet->LearningRate (0.0);
     mpHD_RotationCellCounterClockwiseSynapseSet->LearningRate(0.0);
 
-    mIsCalibrated = true;
-    ROS_DEBUG("Calibration complete");
-}		/* -----  end of method Bionavigator::Calibrate  ----- */
+    mIsHDCalibrated = true;
+    ROS_DEBUG("HD Calibration complete");
+}		/* -----  end of method Bionavigator::CalibrateHDSet  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
@@ -423,17 +927,6 @@ Bionavigator::SetInitialDirection ( )
     mpRotationCellClockwise->DisableForceFire ();
     mpHDCells->DisableForceFire ();
     mpHDCells->Init ();
-
-//    delta_x = (preferred_directions.array () - mInitialHeading).abs ();
-//    threesixty_delta_x = (360 - delta_x.array ());
-//
-//    delta_s = delta_x.cwiseMin (threesixty_delta_x); /* We have s^(HD)_i */
-
-    /*  Set up matrices for the equation */
-    /*  25 -> height of bells peak. I'm trying to stretch it vertically to
-     *  increase the difference in the max and min values of the activation
-     *  that is set up. The width of the gaussian is controlled by sigma.  */
-//    initial_direction_matrix = (((((delta_s.array ().abs2 ())/(2.0*mSigmaHD*mSigmaHD))* -1.0).exp ())).matrix (); /* r^(HD)_i at time 0 */
     /*
      * Set the synaptic weights of the vision head synapses to the weights
      * learned during training for the cann recurrent network.
@@ -441,14 +934,10 @@ Bionavigator::SetInitialDirection ( )
      * This will ensure a peak at the preferred direction.
      */
     mpHD_VisionSynapseSet->SetPlastic ();
-/*     initial_direction_matrix = (mpHDSynapseSet->WeightMatrix ()).row (((mInitialHeading * mpHDCells->DimensionX ())/360.0) -1.0).transpose ();
- */
-    initial_direction_matrix = (mpHDSynapseSet->WeightMatrix ()).col (((mInitialHeading * mpHDCells->DimensionX ())/360.0));
+    /*  Since neuron 0 has preferred direction of 3.6 and not 0 */
+    initial_direction_matrix = (mpHDSynapseSet->WeightMatrix ()).col (((mInitialHeading * mpHDCells->DimensionX ())/360.0) -1);
     mpHD_VisionSynapseSet->AddToWeight((initial_direction_matrix.array ()/initial_direction_matrix.maxCoeff ()).matrix());
 
-/*     initial_direction_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mpHDCells->DimensionX (),mpHDCells->DimensionY ());
- *     initial_direction_matrix(49,0) = 10;
- */
     mpHD_VisionSynapseSet->AddToWeight(initial_direction_matrix.array ());
     mpHD_VisionSynapseSet->PrintToFile(std::string("Before-Forced-vision-synapse.txt"));
     mpHD_VisionSynapseSet->Normalize ();
@@ -469,7 +958,7 @@ Bionavigator::SetInitialDirection ( )
 
 /*         mpHDCells->InhibitionRate ((0.05 *mpHDSynapseSet->WeightMatrix().maxCoeff ()));
  */
-        mpHDCells->InhibitionRate (0.2);
+        mpHDCells->InhibitionRate (0.02);
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
         mpHDCells->FiringRates ();
 
@@ -501,7 +990,7 @@ Bionavigator::SetInitialDirection ( )
     ROS_INFO("Stabilizing activity packet");
     for (int j = 0; j < 200 ; j++) 
     {
-        mpHDCells->InhibitionRate (0.2);
+        mpHDCells->InhibitionRate (0.02);
         mpHDCells->UpdateActivation(mpRotationCellClockwise->FiringRate(), mpRotationCellCounterClockwise->FiringRate(), mpVisionCells->FiringRate(), mpHD_RotationCellClockwiseSynapseSet->WeightMatrix(), mpHD_RotationCellCounterClockwiseSynapseSet->WeightMatrix(),mpHDSynapseSet->WeightMatrix(), mpHD_VisionSynapseSet->WeightMatrix()  );
         mpHDCells->UpdateFiringRate ();
         mpHDCells->UpdateFiringRateTrace ();
@@ -543,6 +1032,130 @@ Bionavigator::SetInitialDirection ( )
     mpHD_RotationCellClockwiseSynapseSet->PrintToFile(std::string("Stabilized-HD-RotationCellClockwise-synapse.txt"));
 }		/* -----  end of method Bionavigator::SetInitialDirection  ----- */
 
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: SetInitialLocation
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::SetInitialLocation ( )
+{
+    ROS_INFO("Setting initial reference location to %f, %f in neuron terms, not absolute location terms", mInitialLocation.x, mInitialLocation.y);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initial_location_matrix; /**< @f$I^{V}_i@f$  */
+
+    /*  For the message to be published */
+    std_msgs::Float64 msg;
+
+    initial_location_matrix.resize(mpGridCells->DimensionX (), mpGridCells->DimensionY ());
+
+    /*  Disable all input completely */
+    mpVelocityCell->DisableForceFire ();
+    mpGridCells->DisableForceFire ();
+    mpHDCells->DisableForceFire ();
+    mpGridCells->Init ();
+    /*  Make sure they aren't firing */
+
+    /*
+     * Set the synaptic weights of the vision head synapses to the weights
+     * learned during training for the cann recurrent network.
+     *
+     * This will ensure a peak at the preferred direction.
+     */
+    mpGridCells_VisionSynapseSet->SetPlastic ();
+    initial_location_matrix = (mpGridCellsSynapseSet->WeightMatrix ()).col (10 * mInitialLocation.x + mInitialLocation.y);
+    mpGridCells_VisionSynapseSet->AddToWeight(initial_location_matrix.array ());
+    mpGridCells_VisionSynapseSet->PrintToFile(std::string("GridCells-Before-Forced-vision-synapse.txt"));
+/*     mpGridCells_VisionSynapseSet->Normalize ();
+ */
+    mpGridCells->PrintFiringRateToFile(std::string("Before-Forced-GridCells-FiringRate.txt"));
+    mpGridCells->PrintActivationToFile(std::string("Before-Forced-GridCells-Activation.txt"));
+    mpGridCells_VisionSynapseSet->SetStiff ();
+    mpVisionCells->EnableForceFire (1.0);
+    mpGridCells->InhibitionRate (0.01);
+
+    /*
+     * Find a good number of iterations. Optimize it.
+     */
+    ROS_INFO("Forcing an initial location");
+    for (double i = 0; i < 30 ; i++ ) 
+    {
+        std::ostringstream ss;
+        ss << i;
+
+
+        /*  Passing all matrices, but the velocity synapse vector.. NOTE */
+        mpGridCells->UpdateActivation(mpVelocityCell->FiringRate(), mpVisionCells->FiringRate(), mpHDCells->FiringRate(), mpGridCells_HD_VelocitySynapseSet, mpGridCellsSynapseSet->WeightMatrix(),mpGridCells_VisionSynapseSet->WeightMatrix()  );
+        mpGridCells->FiringRates ();
+
+        mpGridCells->PrintFiringRateToFile((std::string("Forced-GridCells-FiringRate-") + ss.str () + std::string(".txt")));
+        mpGridCells->PrintActivationToFile((std::string("Forced-GridCells-Activation-") + ss.str () + std::string(".txt")));
+
+/*         mpGridSynapseSet->UpdateWeight (mpGridCells->FiringRateTrace (), mpGridCells->FiringRate ().transpose ());
+ *         mpGridSynapseSet->Normalize ();
+ */
+
+    }
+    mLocation.x = mpGridCells->CurrentLocation ()/10.0;
+    mLocation.y = (int)(mpGridCells->CurrentLocation ()) % 10;
+    ROS_DEBUG("Location is now: [%f, %f]",mLocation.x, mLocation.y);
+/*     mpGridCells->PrintFiringRateToFile(std::string("Forced-GridCells-FiringRate.txt"));
+ *     mpGridCells->PrintActivationToFile(std::string("Forced-GridCells-Activation.txt"));
+ *     mpGridSynapseSet->PrintToFile(std::string("Forced-Grid-synapse.txt"));
+ *     mpGrid_RotationCellCounterClockwiseSynapseSet->PrintToFile(std::string("Forced-Grid-RotationCellCounterClockwise-synapse.txt"));
+ */
+/*     msg.data = mHeadLocation;
+ *     mHeadLocationPublisher.publish(msg);
+ */
+    mpVisionCells->DisableForceFire ();
+
+
+    /*
+     * Find a good number of loops for this
+     */
+    ROS_INFO("Stabilizing activity packet");
+    for (int j = 0; j < 200 ; j++) 
+/*     for (int j = 0; j < 15 ; j++) 
+ */
+
+    {
+        /*  Passing all matrices, but the velocity synapse vector.. NOTE */
+        mpGridCells->UpdateActivation(mpVelocityCell->FiringRate(), mpVisionCells->FiringRate(), mpHDCells->FiringRate(), mpGridCells_HD_VelocitySynapseSet, mpGridCellsSynapseSet->WeightMatrix(),mpGridCells_VisionSynapseSet->WeightMatrix() );
+        mpGridCells->UpdateFiringRate ();
+        mpGridCells->UpdateFiringRateTrace ();
+        mpGridCells->FiringRates ();
+
+        mLocation.x = floor(mpGridCells->CurrentLocation ()/10);
+        mLocation.y = (int)(mpGridCells->CurrentLocation ()) % 10;
+        ROS_DEBUG("Location is now: neuron: %f at [%f, %f] in neuron terms",mpGridCells->CurrentLocation (), mLocation.x, mLocation.y);
+
+        /*  Learning still occurs! */
+/*         mpGridSynapseSet->UpdateWeight (mpGridCells->FiringRateTrace (), mpGridCells->FiringRate ().transpose ());
+ *         mpGridSynapseSet->Normalize ();
+ * 
+ */
+
+/*         msg.data = mHeadLocation;
+ *         mHeadLocationPublisher.publish(msg);
+ */
+        if((j == 0 ) || (j%10 == 9))
+        {
+            std::ostringstream ss;
+            ss << j;
+            mpGridCells->PrintFiringRateToFile((std::string("Stabilized-GridCells-FiringRate-") + ss.str () + std::string(".txt")));
+            mpGridCells->PrintActivationToFile((std::string("Stabilized-GridCells-Activation-") + ss.str () + std::string(".txt")));
+/*             mpGridSynapseSet->PrintToFile(std::string("Stabilized-Grid-synapse.txt"));
+ */
+        }
+    }
+
+    mIsInitialLocationSet = true;
+    ROS_DEBUG("Location set to: [%f, %f] in neuron terms",mLocation.x, mLocation.y);
+    mpGridCells->PrintFiringRateToFile(std::string("Stabilized-GridCells-FiringRate.txt"));
+    mpGridCells->PrintActivationToFile(std::string("Stabilized-GridCells-Activation.txt"));
+    mpGridCellsSynapseSet->PrintToFile(std::string("Stabilized-Grid-synapse.txt"));
+}		/* -----  end of method Bionavigator::SetInitialLocation  ----- */
 
 
 /*
@@ -557,7 +1170,7 @@ Bionavigator::HeadDirection (double angularVelocityZ )
 {
 /*     ROS_DEBUG("Angular velocity received: %f",angularVelocityZ);
  */
-    mpHDCells->InhibitionRate (0.2);
+    mpHDCells->InhibitionRate (0.02);
     mpRotationCellClockwise->UpdateFiringRate (angularVelocityZ);
     mpRotationCellCounterClockwise->UpdateFiringRate (angularVelocityZ);
 
@@ -567,20 +1180,22 @@ Bionavigator::HeadDirection (double angularVelocityZ )
     mpHDCells->FiringRates ();
 
 
-    mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
-    mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
-    mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
-    mpHDSynapseSet->Normalize ();
-    mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
-    mpHD_RotationCellClockwiseSynapseSet->Normalize ();
-
-    ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
+/*     mpHDSynapseSet->UpdateWeight (mpHDCells->FiringRate (), mpHDCells->FiringRate ().transpose ());
+ *     mpHD_RotationCellCounterClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellCounterClockwise->FiringRate ()).transpose ());
+ *     mpHD_RotationCellClockwiseSynapseSet->UpdateWeight (mpHDCells->FiringRate (), (mpHDCells->FiringRateTrace () * mpRotationCellClockwise->FiringRate ()).transpose ());
+ *     mpHDSynapseSet->Normalize ();
+ *     mpHD_RotationCellCounterClockwiseSynapseSet->Normalize ();
+ *     mpHD_RotationCellClockwiseSynapseSet->Normalize ();
+ * 
+ *     ROS_DEBUG("Inhibition rate set: %f",mpHDCells->InhibitionRate());
+ */
 
     mHeadDirectionPrev = mHeadDirection;
     mHeadDirection = mpHDCells->CurrentHeadDirection ();
-    ROS_DEBUG_STREAM ("Head direction is now: " << mHeadDirection << " for firing rates: " << std::fixed << mpRotationCellClockwise->FiringRate () << ", " << std::fixed << mpRotationCellCounterClockwise->FiringRate ());
-
-    mDebugFile << "HD:\t" << std::fixed << mHeadDirection << "\t" << "FR: " << "\t" << std::fixed << mpRotationCellClockwise->FiringRate () << "\t" << std::fixed << (-1.0 * mpRotationCellCounterClockwise->FiringRate ().array ()) << std::endl;
+/*     ROS_DEBUG_STREAM ("Head direction is now: " << mHeadDirection << " for firing rates: " << std::fixed << mpRotationCellClockwise->FiringRate () << ", " << std::fixed << mpRotationCellCounterClockwise->FiringRate ());
+ * 
+ *     mDebugFile << "HD:\t" << std::fixed << mHeadDirection << "\t" << "FR: " << "\t" << std::fixed << mpRotationCellClockwise->FiringRate () << "\t" << std::fixed << (-1.0 * mpRotationCellCounterClockwise->FiringRate ().array ()) << std::endl;
+ */
     if (mHeadDirection == -1)
     {
         ROS_DEBUG("%s: Something went wrong. Head direction received -1", (mpHDCells->Identifier()).c_str ());
@@ -590,6 +1205,47 @@ Bionavigator::HeadDirection (double angularVelocityZ )
  *         ROS_INFO("%s: Back at initial heading", mpHDCells->Identifier().c_str ());
  */
 }		/* -----  end of method Bionavigator::HeadDirection  ----- */
+
+
+/*
+ *--------------------------------------------------------------------------------------
+ *       Class:  Bionavigator
+ *      Method:  Bionavigator :: GridLocation
+ * Description:  
+ *--------------------------------------------------------------------------------------
+ */
+    void
+Bionavigator::GridLocation (double velocity )
+{
+/*     ROS_DEBUG("Angular velocity received: %f",angularVelocityZ);
+ */
+    mpVelocityCell->UpdateFiringRate (velocity);
+
+    mpGridCells->UpdateActivation(mpVelocityCell->FiringRate(), mpVisionCells->FiringRate(), mpHDCells->FiringRate(), mpGridCells_HD_VelocitySynapseSet, mpGridCellsSynapseSet->WeightMatrix(),mpGridCells_VisionSynapseSet->WeightMatrix()  );
+    mpGridCells->UpdateFiringRate ();
+    mpGridCells->UpdateFiringRateTrace ();
+    mpGridCells->FiringRates ();
+
+
+    mLocationPrev = mLocation;
+    mLocation.x = mpGridCells->CurrentLocation ()/10.0;
+    mLocation.y = (int)(mpGridCells->CurrentLocation ()) % 10;
+    ROS_DEBUG_STREAM ("Grid location is now: " << mLocation.x << ", " << mLocation.y <<  " for " << "Activation values: [" << mpGridCells->Activation().maxCoeff() << "," << mpGridCells->Activation().minCoeff() << "]" <<  " HD: " << mHeadDirection << " and rotational firing rates: " << std::fixed << mpRotationCellClockwise->FiringRate () << ", " << std::fixed << mpRotationCellCounterClockwise->FiringRate () << " and velocity: " << velocity << " firing rate: " <<  mpVelocityCell->FiringRate ());
+
+    mDebugFile << "GL:\t" << mLocation.x << "\t" << mLocation.y << "\t" <<  "HD:\t" << std::fixed << mHeadDirection << "\t" << "FR: " << "\t" << std::fixed << mpRotationCellClockwise->FiringRate () << "\t" << std::fixed << (-1.0 * mpRotationCellCounterClockwise->FiringRate ().array ()) << "\tVEL:\t" << mpVelocityCell->FiringRate () <<  std::endl;
+    if (mLocation.x == -1 || mLocation.y == -1)
+    {
+        ROS_DEBUG("%s: Something went wrong. Grid location received -1", (mpGridCells->Identifier()).c_str ());
+    }
+
+    mGridHeatMap = mGridHeatMap.cwiseMax(mpGridCells->FiringRate ());
+    mDebugFile << "Grid heat map:" << mGridHeatMap.transpose () << std::endl;
+
+/*     if (mHeadDirection != mHeadDirectionPrev && mHeadDirection == mInitialHeading)
+ *         ROS_INFO("%s: Back at initial heading", mpHDCells->Identifier().c_str ());
+ */
+    return ;
+}		/* -----  end of method Bionavigator::GridLocation  ----- */
 
 
 /*
@@ -607,9 +1263,14 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
     /*
      * Make sure the system is calibrated
      */
-    if( mIsCalibrated == false )
+    if( mIsHDCalibrated == false )
     {
-        Calibrate ();
+        CalibrateHDSet ();
+    }
+
+    if ( mIsGridCellSetCalibrated == false )
+    {
+        CalibrateGridCellSet ();
     }
 
 
@@ -621,48 +1282,39 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
         SetInitialDirection ();
     }
 
+    if (mIsInitialDirectionSet == false)
+    {
+        SetInitialLocation ();
+    }
 
-
-    /*  Only process every fifth packet. 
-     *  This needs to be tinkered with and optimised
+    /*
+     * Calculate the new head direction
      */
-/*     mpAngularVelocityArray[mCountTillFreq] = rImuMessage->angular_velocity.z;
- *     mCount++;
- *     mCountTillFreq++;
- *     if (mCountTillFreq  == mProcessFreq)
- *     {
- *         mCountTillFreq = 0;
- * 
- *         for (int i = 0; i< mProcessFreq; i++)
- *         {
- *             angular_velocity += mpAngularVelocityArray[i];
- *             mpAngularVelocityArray[i] = 0.0;
- *         }
- *         angular_velocity /= (1.0 * mProcessFreq);
- */
-        /*
-         * Calculate the new head direction
-         */
     mCount++;
     if (mCount%mProcessFreq ==0)
     {
         HeadDirection (rImuMessage->angular_velocity.z);
 
-        //HeadDirection (angular_velocity);
-
-        if (rImuMessage->angular_velocity.z > 0)
-       // if (angular_velocity> 0)
-            mPositive++;
-        else
-            mNegative++;
+        /*  Assume frequency is 100Hz, and we process every 10th packet only */
+        /*  v = ut + 0.5at^2 */
+        mVelocity = (mVelocity + (rImuMessage->linear_acceleration.y * 0.1));
+        GridLocation (mVelocity);
 
         /*
          * You have to add the data to the struct before you publish it
          */
-        std_msgs::Float64 msg;
-        msg.data = mHeadDirection;
-        mHeadDirectionPublisher.publish(msg);
-/*         ROS_DEBUG("Angular velocity stats: [+%d,-%d]", mPositive, mNegative);
+        std_msgs::Float64 head_message;
+        head_message.data = mHeadDirection;
+        mHeadDirectionPublisher.publish(head_message);
+
+/*         std_msgs::Float64MultiArray grid_message;
+ *         grid_message.layout.dim[0].label = "x location";
+ *         grid_message.layout.dim[0].size = 1;
+ *         grid_message.layout.dim[0].stride = 1;
+ *         grid_message.layout.dim[1].label = "y location";
+ *         grid_message.layout.dim[1].size = 1;
+ *         grid_message.data[0] = mLocation.x;
+ *         grid_message.data[1] = mLocation.y;
  */
     }
 
@@ -672,7 +1324,10 @@ Bionavigator::CallbackPublishDirection (const sensor_msgs::Imu::ConstPtr& rImuMe
         ss << mCount;
         mpHDCells->PrintFiringRateToFile((std::string("Running-HDCells-FiringRate-") + ss.str () + std::string(".txt")));
         mpHDCells->PrintActivationToFile((std::string("Running-HDCells-Activation-") + ss.str () + std::string(".txt")));
-        mpHDSynapseSet->PrintToFile((std::string("Running-HD-synapse-") + ss.str () + std::string(".txt")));
+        mpGridCells->PrintFiringRateToFile((std::string("Running-GridCells-FiringRate-") + ss.str () + std::string(".txt")));
+        mpGridCells->PrintActivationToFile((std::string("Running-GridCells-Activation-") + ss.str () + std::string(".txt")));
+/*         mpHDSynapseSet->PrintToFile((std::string("Running-HD-synapse-") + ss.str () + std::string(".txt")));
+ */
 
     }
 
@@ -701,5 +1356,8 @@ Bionavigator::RosInit ( )
     ROS_ASSERT(mHeadDirectionPublisher);
     ROS_INFO("Publishing to /head_direction");
 
+    mLocationPublisher = mNodeHandle.advertise<std_msgs::Float64MultiArray>("grid_location",10);
+    ROS_ASSERT(mLocationPublisher);
+    ROS_INFO("Publishing to /grid_location");
 }		/* -----  end of method Bionavigator::RosInit  ----- */
 

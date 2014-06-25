@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  RotationCellClockwise.cpp
+ *       Filename:  VelocityCell.cpp
  *
  *    Description:  Definition file
  *
@@ -17,86 +17,77 @@
  */
 
 
-#include "RotationCellClockwise.hpp"
+#include "VelocityCell.hpp"
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  RotationCellClockwise
- *      Method:  RotationCellClockwise
+ *       Class:  VelocityCell
+ *      Method:  VelocityCell
  * Description:  constructor
  *--------------------------------------------------------------------------------------
  */
-RotationCellClockwise::RotationCellClockwise ()
+VelocityCell::VelocityCell ()
 {
-    mBeta = 1;
+    mBeta = 0.5;
     mAlpha = 0;
-}  /* -----  end of method RotationCellClockwise::RotationCellClockwise  (constructor)  ----- */
+}  /* -----  end of method VelocityCell::VelocityCell  (constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  RotationCellClockwise
- *      Method:  RotationCellClockwise
+ *       Class:  VelocityCell
+ *      Method:  VelocityCell
  * Description:  copy constructor
  *--------------------------------------------------------------------------------------
  */
-RotationCellClockwise::RotationCellClockwise ( const RotationCellClockwise &other )
+VelocityCell::VelocityCell ( const VelocityCell &other )
 {
-}  /* -----  end of method RotationCellClockwise::RotationCellClockwise  (copy constructor)  ----- */
+}  /* -----  end of method VelocityCell::VelocityCell  (copy constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  RotationCellClockwise
- *      Method:  ~RotationCellClockwise
+ *       Class:  VelocityCell
+ *      Method:  ~VelocityCell
  * Description:  destructor
  *--------------------------------------------------------------------------------------
  */
-RotationCellClockwise::~RotationCellClockwise ()
+VelocityCell::~VelocityCell ()
 {
-}  /* -----  end of method RotationCellClockwise::~RotationCellClockwise  (destructor)  ----- */
+}  /* -----  end of method VelocityCell::~VelocityCell  (destructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  RotationCellClockwise
+ *       Class:  VelocityCell
  *      Method:  operator =
  * Description:  assignment operator
  *--------------------------------------------------------------------------------------
  */
-    RotationCellClockwise&
-RotationCellClockwise::operator = ( const RotationCellClockwise &other )
+    VelocityCell&
+VelocityCell::operator = ( const VelocityCell &other )
 {
     if ( this != &other ) {
     }
     return *this;
-}  /* -----  end of method RotationCellClockwise::operator =  (assignment operator)  ----- */
+}  /* -----  end of method VelocityCell::operator =  (assignment operator)  ----- */
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  RotationCellClockwise
- *      Method:  RotationCellClockwise :: UpdateFiringRate
+ *       Class:  VelocityCell
+ *      Method:  VelocityCell :: UpdateFiringRate
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
-RotationCellClockwise::UpdateFiringRate (double angularVelocity )
+VelocityCell::UpdateFiringRate (double velocity )
 {
-    /*
-     * Greater than 0 is clockwise for me
-     */
-    if (angularVelocity > 0)
-    {
-        double temp = (1.0/(1.0 +( exp(-2.0 * mBeta * (angularVelocity -mAlpha)))));
-
-        if (temp > 0)
-            mFiringRate << temp;
-        else 
-            mFiringRate << 0;
-    } 
+    double temp = (1.0/(1.0 +( exp(-2.0 * mBeta * (velocity -mAlpha)))));
+    //ROS_DEBUG_STREAM (mIdentifier << ": Firing rate is: " << mFiringRate);
+    if (temp > 0)
+        mFiringRate << temp;
     else 
         mFiringRate << 0;
 
-    //ROS_DEBUG_STREAM (mIdentifier << ": Firing rate is: " << mFiringRate);
     return mFiringRate;
-}		/* -----  end of method RotationCellClockwise::UpdateFiringRate  ----- */
+}		/* -----  end of method VelocityCell::UpdateFiringRate  ----- */
 

@@ -37,11 +37,15 @@ main ( int argc, char **argv )
     /*  It might be possible to store these values to use in later runs. The
      *  training is the same in each run. No point doing it again and again. */
     bionavigator->Calibrate ();
+    /*  Set location first because we don't want head direction cells
+     *  projecting on grid cells at this point. The velocity cell isn't firing
+     *  so this shouldn't be a problem any way */
+    bionavigator->SetInitialLocation ();
     bionavigator->SetInitialDirection ();
 
 
-
     ros::spin();
+
 
 
     return 0;

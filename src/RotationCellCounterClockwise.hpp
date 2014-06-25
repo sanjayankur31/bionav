@@ -77,6 +77,8 @@ class RotationCellCounterClockwise: public Bionav::NeuronSet
         /* ====================  METHODS       ======================================= */
 
         /* ====================  DATA MEMBERS  ======================================= */
+        double mAlpha;
+        double mBeta;
 
 }; /* -----  end of class RotationCellCounterClockwise  ----- */
 

@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  HDCells.cpp
+ *       Filename:  PlaceCells.cpp
  *
- *    Description:  Definition file for HDCells.hpp
+ *    Description:  Definition file for PlaceCells.hpp
  *
  *        Version:  1.0
  *        Created:  26/09/13 15:45:24
@@ -16,111 +16,110 @@
  * =====================================================================================
  */
 
-#include "HDCells.hpp"
+#include "PlaceCells.hpp"
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells
  * Description:  constructor
  *--------------------------------------------------------------------------------------
  */
-HDCells::HDCells ()
+PlaceCells::PlaceCells ()
 {
-    mIdentifier = "HD Cells";
+    mIdentifier = "Place Cells";
     mDimensionX = 100;
     mDimensionY = 1;                            /* This has to be 1 at the moment. Other values are not supported */
     mHasTrace = true;
     mTau = 1.0;
-    mC_HD_ROT = (double)(mDimensionX * 2);
-    mC_HD = (double)(mDimensionX);
-    mC_HD_V = (double)(mDimensionX);
-/*     mPhi0 = (double)(23.0 * mC_HD);
+    mC_P_HD_Vel = (double)(mDimensionX * mDimensionX);
+    mC_P = (double)(mDimensionX);
+    mC_P_V = (double)(mDimensionX);
+/*     mPhi0 = (double)(23.0 * mC_P);
  */
-    mPhi0 = (double)(10.0 * mC_HD);
-/*     mPhi1 = (double)(1000.0 * mC_HD_ROT);
+    mPhi0 = (double)(10.0 * mC_P);
+/*     mPhi1 = (double)(1000.0 * mC_P_HD_Vel);
  */
-    mPhi1 = (double)(10.0 * mC_HD_ROT);
-    mPhi2 = (double)(10.0 * mC_HD_V);
+    mPhi1 = (double)(10.0 * mC_P_HD_Vel);
+    mPhi2 = (double)(1000.0 * mC_P_V);
     mAlpha = 1.5;
     mBeta = 3;
     mDeltaT = 0.0001;
     mEta = 0.1;
 
 
-}  /* -----  end of method HDCells::HDCells  (constructor)  ----- */
+}  /* -----  end of method PlaceCells::PlaceCells  (constructor)  ----- */
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: Init
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: Init
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     void
-HDCells::Init ( )
+PlaceCells::Init ( )
 {
     NeuronSet::Init ();
     mActivation.resize(mDimensionX,mDimensionY);
     mActivation = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero (mDimensionX, mDimensionY);
-}		/* -----  end of method HDCells::Init  ----- */
+}		/* -----  end of method PlaceCells::Init  ----- */
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells
  * Description:  copy constructor
  *--------------------------------------------------------------------------------------
  */
-HDCells::HDCells ( const HDCells &other )
+PlaceCells::PlaceCells ( const PlaceCells &other )
 {
-}  /* -----  end of method HDCells::HDCells  (copy constructor)  ----- */
+}  /* -----  end of method PlaceCells::PlaceCells  (copy constructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  ~HDCells
+ *       Class:  PlaceCells
+ *      Method:  ~PlaceCells
  * Description:  destructor
  *--------------------------------------------------------------------------------------
  */
-HDCells::~HDCells ()
+PlaceCells::~PlaceCells ()
 {
-}  /* -----  end of method HDCells::~HDCells  (destructor)  ----- */
+}  /* -----  end of method PlaceCells::~PlaceCells  (destructor)  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
+ *       Class:  PlaceCells
  *      Method:  operator =
  * Description:  assignment operator
  *--------------------------------------------------------------------------------------
  */
-    HDCells&
-HDCells::operator = ( const HDCells &other )
+    PlaceCells&
+PlaceCells::operator = ( const PlaceCells &other )
 {
     if ( this != &other ) {
     }
     return *this;
-}  /* -----  end of method HDCells::operator =  (assignment operator)  ----- */
+}  /* -----  end of method PlaceCells::operator =  (assignment operator)  ----- */
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: UpdateActivation
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: UpdateActivation
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     void
-HDCells::UpdateActivation (
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellFiringRate,
+PlaceCells::UpdateActivation (
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellFiringRate,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellFiringRates,
+        std::vector<PlaceCells_HD_VelocitySynapseSet*> velocityCellSynapses,
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> placeCellSynapses,
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
         )
 {
@@ -141,14 +140,23 @@ HDCells::UpdateActivation (
     temp_matrix3.resize(mDimensionX,mDimensionY);
     temp_matrix3 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix4;
+    temp_matrix4.resize(mDimensionX,mDimensionY);
+    temp_matrix4 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix5;
+    temp_matrix5.resize(mDimensionX,mDimensionY);
+    temp_matrix5 = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
+
+
     mDeltaT = mTau/100.0;
     for (double i = 0; i < 1; i += mDeltaT ) {
 
-        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_HD_ROT) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
+        /*         temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ())) + (((mDeltaT/mTau * mPhi2/mC_P_HD_Vel) * ((visionCellSynapses * mFiringRate) * visionCellFiringRate)).matrix ());
         */
 
         /*  Cut out vision for the time being  */
-        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
+        /*     temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((clockwiseRotationCellSynapses * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + ((counterClockwiseRotationCellSynapses * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
         */
 
         /*  Introduce a leak variable here */
@@ -156,61 +164,41 @@ HDCells::UpdateActivation (
 
         /*  Should inhibition rate be same for all neurons, or should it be
          *  different for each neuron? */
-        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
-        temp_matrix2 = ((mDeltaT/mTau * mPhi1/mC_HD_ROT)*(((((clockwiseRotationCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)* clockwiseRotationCellFiringRate).matrix ()) + (((counterClockwiseRotationCellSynapses .array () - mInhibitionRate).matrix () * mFiringRate)* counterClockwiseRotationCellFiringRate).matrix ()));
-        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_HD_V) * (visionCellSynapses * visionCellFiringRate).matrix ());
+        temp_matrix1 = ((mDeltaT/mTau * mPhi0/mC_P) * ((placeCellSynapses. array () - mInhibitionRate).matrix () * mFiringRate));
+        for (int j  = 0 ; j < mDimensionX; j ++)
+        {
+            temp_matrix5 = velocityCellSynapses[i]->WeightMatrix();
+            temp_matrix2 = temp_matrix4 + ((mDeltaT/mTau * mPhi1/mC_P_HD_Vel)*((((temp_matrix5.array () - mInhibitionRate).matrix () * mFiringRate)* headCellFiringRates(i,0)) * velocityCellFiringRate).matrix ());
+            temp_matrix4 = temp_matrix2;
+        }
 
-        mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3;
+        temp_matrix3 = ((mDeltaT/mTau * mPhi2/mC_P_V) * (visionCellSynapses * visionCellFiringRate)).matrix ();
+
+        mActivation = temp_matrix + temp_matrix1 + temp_matrix2 + temp_matrix3 + temp_matrix4;
 
         UpdateFiringRate ();
         UpdateFiringRateTrace ();
     }
 
-/*     ROS_DEBUG("%s: Recurrent term: [%f, %f]" , mIdentifier.c_str (), temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
- *     ROS_DEBUG("%s: Vestibular term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
- *     ROS_DEBUG("%s: Vision term: [%f,%f]" , mIdentifier.c_str (), temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
- * 
- *     ROS_DEBUG("%s: Firing rate term: [%f,%f]" , mIdentifier.c_str (),temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
- *     ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+    ROS_DEBUG("%s: Recurrent term: [%f, %f]" , mIdentifier.c_str (), temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
+/*     ROS_DEBUG("%s: Velocity term: [%f,%f]" , mIdentifier.c_str (), temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
  */
-}		/* -----  end of method HDCells::UpdateActivation  ----- */
+    ROS_DEBUG("%s: Vision term: [%f,%f]" , mIdentifier.c_str (), temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
+
+    ROS_DEBUG("%s: Firing rate term: [%f,%f]" , mIdentifier.c_str (),temp_matrix1.maxCoeff (), temp_matrix1.minCoeff ());
+    ROS_DEBUG("%s: Activation values: [%f, %f]", mIdentifier.c_str (),mActivation.maxCoeff (), mActivation.minCoeff ());
+}		/* -----  end of method PlaceCells::UpdateActivation  ----- */
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: UpdateActivation
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: UpdateFiringRate
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     void
-HDCells::UpdateActivation (
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initialDirectionMatrix,
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses)
-{
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix;
-    temp_matrix.resize(mDimensionX,mDimensionY);
-    temp_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(mDimensionX, mDimensionY);
-
-    for (double i = 0; i < 1; i += mDeltaT ) 
-    {
-        temp_matrix = ((1.0 - mDeltaT/mTau) * mActivation) + ((mDeltaT/mTau * mPhi0/mC_HD) * ((headCellSynapses.array () - mInhibitionRate).matrix () * mFiringRate)) + (((mDeltaT/mTau)*initialDirectionMatrix));
-        mActivation = temp_matrix;
-    }
-    ROS_DEBUG("%s: Activation values: [%f, %f]",mIdentifier.c_str (), mActivation.maxCoeff (), mActivation.minCoeff ());
-
-}		/* -----  end of method HDCells::UpdateActivation  ----- */
-
-
-/*
- *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: UpdateFiringRate
- * Description:  
- *--------------------------------------------------------------------------------------
- */
-    void
-HDCells::UpdateFiringRate ( )
+PlaceCells::UpdateFiringRate ( )
 {
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> temp_matrix;
     temp_matrix.resize(mDimensionX,mDimensionY);
@@ -248,62 +236,52 @@ HDCells::UpdateFiringRate ( )
             mFiringRate(i,0) = 0;
     }
 
-    /*  rescale to [0,1] */
-/*     temp_matrix = mFiringRate;
- *     mFiringRate = (temp_matrix.array ()/temp_matrix.maxCoeff ()).matrix ();
- */
 
-    /*  Keep it between 0 and 1 */
-/*     temp_matrix = (mFiringRate.array() - mFiringRate.minCoeff ()).matrix ();
- */
-
-/*     ROS_DEBUG("Firing term1: [%f, %f]" , temp_matrix.maxCoeff (), temp_matrix.minCoeff ());
- *     ROS_DEBUG("Firing term2: [%f,%f]" , temp_matrix2.maxCoeff (), temp_matrix2.minCoeff ());
- *     ROS_DEBUG("Firing term3: [%f,%f]" , temp_matrix3.maxCoeff (), temp_matrix3.minCoeff ());
- */
-
-}		/* -----  end of method HDCells::UpdateFiringRate  ----- */
+}		/* -----  end of method PlaceCells::UpdateFiringRate  ----- */
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: UpdateFiringRate
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: UpdateFiringRate
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     void
-HDCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS , double sigmaHD)
+PlaceCells::UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaSsq , double sigmaP)
 {
-    mFiringRate = ((((deltaS.array ().abs2 () +1)/(2.0*sigmaHD * sigmaHD))* -1.0).exp ()).matrix (); /* r^(HD)_i -> equation 4 */
-}		/* -----  end of method HDCells::UpdateFiringRate  ----- */
+    mFiringRate = ((((deltaSsq.array () +1)/(2.0*sigmaP * sigmaP))* -1.0).exp ()).matrix ();
+
+/*     mFiringRate = deltaS.array ();
+ */
+}		/* -----  end of method PlaceCells::UpdateFiringRate  ----- */
 
 
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: UpdateFiringRateTrace
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: UpdateFiringRateTrace
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     void
-HDCells::UpdateFiringRateTrace ( )
+PlaceCells::UpdateFiringRateTrace ( )
 {
 /*     mFiringRateTrace = ((1.0 - mEta) * mFiringRate) + (mEta * mFiringRateTrace);
  */
     mFiringRateTrace = ((1.0 - mEta) * mFiringRate); /* rTrace^(HD)_i -> equation 7 */
-}		/* -----  end of method HDCells::UpdateFiringRateTrace  ----- */
+}		/* -----  end of method PlaceCells::UpdateFiringRateTrace  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: CurrentHeadDirection
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: CurrentLocation
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     double
-HDCells::CurrentHeadDirection ( )
+PlaceCells::CurrentLocation ( )
 {
     double max_value = mFiringRate.maxCoeff ();
 
@@ -314,20 +292,21 @@ HDCells::CurrentHeadDirection ( )
     for (int k = 0; k < mDimensionX; k +=1)
     {
         if (mFiringRate(k,0) == max_value)
-            return ((k+1) * mDirectionalRange);
+            return k;
+
     }
     return -1;
-}		/* -----  end of method HDCells::CurrentHeadDirection  ----- */
+}		/* -----  end of method PlaceCells::CurrentLocation  ----- */
 
 /*
  *--------------------------------------------------------------------------------------
- *       Class:  HDCells
- *      Method:  HDCells :: CurrentHeadDirection
+ *       Class:  PlaceCells
+ *      Method:  PlaceCells :: CurrentLocation
  * Description:  
  *--------------------------------------------------------------------------------------
  */
     double
-HDCells::CurrentHeadDirection (double dummy)
+PlaceCells::CurrentLocation (double dummy)
 {
     double max_value = mActivation.maxCoeff ();
 
@@ -338,8 +317,8 @@ HDCells::CurrentHeadDirection (double dummy)
     for (int k = 0; k < mDimensionX; k +=1)
     {
         if (mActivation(k,0) == max_value)
-            return ((k+1) * mDirectionalRange);
+            return k;
     }
     return -1;
-}		/* -----  end of method HDCells::CurrentHeadDirection  ----- */
+}		/* -----  end of method PlaceCells::CurrentLocation  ----- */
 

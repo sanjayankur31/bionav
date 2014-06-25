@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  HDCells.hpp
+ *       Filename:  GridCells.hpp
  *
- *    Description:  Header file for Head direction cell set
+ *    Description:  Header file for the Grid cells set
  *
  *        Version:  1.0
  *        Created:  09/09/2013 06:38:36 PM
@@ -16,35 +16,36 @@
  * =====================================================================================
  */
 
-#ifndef  HDCells_INC
-#define  HDCells_INC
+#ifndef  GridCells_INC
+#define  GridCells_INC
 
 #include "NeuronSet.hpp"
+#include "GridCells_HD_VelocitySynapseSet.hpp"
 #include <Eigen/Dense>
 
 /*
  * =====================================================================================
- *        Class:  HDCells
+ *        Class:  GridCells
  *  Description:  
  * =====================================================================================
  */
 /**
- * @class HDCells
+ * @class GridCells
  *
- * @brief Class representing head direction cells
+ * @brief Class representing grid cells
  *
  * @todo Decide on value of time constant
  * @todo Calibrate constants
  * @todo Verify forumule implementations
  */
 
-class HDCells: public Bionav::NeuronSet
+class GridCells: public Bionav::NeuronSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
-        HDCells ();                             /* constructor      */
-        HDCells ( const HDCells &other );   /* copy constructor */
-        ~HDCells ();                            /* destructor       */
+        GridCells ();                             /* constructor      */
+        GridCells ( const GridCells &other );   /* copy constructor */
+        ~GridCells ();                            /* destructor       */
 
         /* ====================  ACCESSORS     ======================================= */
         /**
@@ -65,19 +66,18 @@ class HDCells: public Bionav::NeuronSet
          *
          * This is the major worker method that does the step integration.
          *
-         * @param clockwiseRotationCellFiringRate
-         * @param counterclockwiseRoatationCellFiringRate
+         * @param velocityCellFiringRate
          * @param visionCellFiringRate
+         * @param headCellFiringRates
          *
-         * @param clockwiseRotationCellSynapses
-         * @param counterclockwiseRotationCellSynapses
-         * @param headCellSynapses
+         * @param velocityCellSynapses
+         * @param gridCellSynapses
          * @param visionCellSynapses
          *
          * @return void
          *
          *
-         * @note Will need correction. Just a place holder for the formula.
+         * @note Will need correction. Just a grid holder for the formula.
          * Some constants still haven't been defined. I need to see where
          * they'll fall, or whether I should just insert them already scaled
          *
@@ -85,76 +85,31 @@ class HDCells: public Bionav::NeuronSet
          *
          */
         void UpdateActivation (
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellFiringRate,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterclockwiseRotationCellFiringRate,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> velocityCellFiringRate,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellFiringRate,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> clockwiseRotationCellSynapses,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> counterClockwiseRotationCellSynapses,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellFiringRates,
+                std::vector<GridCells_HD_VelocitySynapseSet*> velocityCellSynapses,
+                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> gridCellSynapses,
                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> visionCellSynapses
                 );
 
         /**
-         * @brief Update activation 
-         *
-         * Used to set initial direction. Sets a small packet of activity and
-         * lets it run to stabilize. Once done, the system starts to take in
-         * information from the imu and integrate it to publish a result.
-         * 
-         * It's only slightly different, in that we give a gaussian visual
-         * input to the system to force it to take a profile centered at our
-         * required reference direction.
-         *
-         * Since the rotation cells aren't firing here at all, either during
-         * forced firing of head cells, or during stabilization, we just strip
-         * the actual UpdateActivation function down to smaller bits. I
-         * could've used the same formula, but this will save unnecessary
-         * matrix computation, where the middle terms will just end up as 0.
-         * 
-         * @param initialDirectionMatrix Matrix holding an initial peak
-         * @param headCellSynapse The now stiff, head direction cann synapse
-         * set
-         *
-         * @return void
-         */
-        void UpdateActivation(
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> initialDirectionMatrix,
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> headCellSynapses
-                );
-
-        /**
-         * @brief Return the head direction of the network
+         * @brief Return the current locationencoded by the network
          *
          * @param None
          *
-         * @return Current head direction of network
+         * @return Current location of the network
          */
-        double CurrentHeadDirection ();
+        double CurrentLocation ();
         /**
-         * @brief Return the head direction of the network using activation
+         * @brief Return the current location of the network using activation
          * values rather than firing rate values
          *
          * @param double dummy input to differentiate the two methods
          *
-         * @return Current head direction of network
+         * @return Current location of network
          */
-        double CurrentHeadDirection (double dummy);
-
-        /**
-         * @brief Update the "directional range" of the system
-         *
-         * This isn't exactly the same as the directional firing range of head
-         * cells. That is learnt during training. This variable just stores the
-         * degrees each cell denotes, as a convenience.
-         * 
-         * @param None
-         *
-         * @return void
-         */
-        void UpdateDirectionalRange () {
-            mDirectionalRange = 360/mDimensionX;
-            ROS_INFO("%s: directional range updated to: %f", mIdentifier.c_str (), mDirectionalRange);
-        }
+        double CurrentLocation (double dummy);
 
         virtual void UpdateFiringRate ();
         virtual void UpdateFiringRateTrace ();
@@ -168,10 +123,10 @@ class HDCells: public Bionav::NeuronSet
          *
          * @return void
          */
-        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS, double sigmaHD);
+        void UpdateFiringRate (Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> deltaS, double sigmaP);
 
         /**
-         * @brief I need to initialize the activation matrix for HDCells also
+         * @brief I need to initialize the activation matrix for GridCells also
          *
          * @param None
          *
@@ -186,7 +141,7 @@ class HDCells: public Bionav::NeuronSet
 
         /* ====================  OPERATORS     ======================================= */
 
-        HDCells& operator = ( const HDCells &other ); /* assignment operator */
+        GridCells& operator = ( const GridCells &other ); /* assignment operator */
 
     protected:
         /* ====================  METHODS       ======================================= */
@@ -201,18 +156,17 @@ class HDCells: public Bionav::NeuronSet
         double mTau;                       /**< Time constant */
         double mAlpha;                     /**< Alpha in firing rate equation */
         double mBeta;                      /**< Beta in firing rate equation */
-        double mDirectionalRange;          /**< Directional range of a cell */
 
         /*  Handle these. Put them in their classes */
         double mPhi0;
-        double mC_HD;
+        double mC_G;
         double mInhibitionRate;
         double mPhi1;
-        double mC_HD_ROT;
-        double mC_HD_V;
+        double mC_G_HD_Vel;
+        double mC_G_V;
         double mPhi2;
 
-}; /* -----  end of class HDCells  ----- */
+}; /* -----  end of class GridCells  ----- */
 
 
-#endif   /* ----- #ifndef HDCells_INC  ----- */
+#endif   /* ----- #ifndef GridCells_INC  ----- */

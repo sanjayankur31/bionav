@@ -207,6 +207,16 @@ namespace Bionav {
              * */
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FiringRateTrace() { return mFiringRateTrace; }
 
+
+            /**
+             * @brief Return activation matrix
+             *
+             * @param None
+             *
+             * @return Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> the activation matrix
+             * */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Activation () { return mActivation; }
+
             /**
              * @brief Calculate new firing rate matrix
              *

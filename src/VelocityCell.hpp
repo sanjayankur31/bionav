@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  RotationCellClockwise.hpp
+ *       Filename:  VelocityCell.hpp
  *
  *    Description:  
  *
@@ -17,32 +17,31 @@
  */
 
 
-#ifndef  RotationCellClockwise_INC
-#define  RotationCellClockwise_INC
+#ifndef  VelocityCell_INC
+#define  VelocityCell_INC
 
 #include "NeuronSet.hpp"
 #include "std_msgs/Float64.h"
+#include <cmath>
 /*
  * =====================================================================================
- *        Class:  RotationCellClockwise
- *  Description:  A clockwise rotation cell
+ *        Class:  VelocityCell
+ *  Description:  A velocity cell
  * =====================================================================================
  */
 /**
- * @class RotationCellClockwise
+ * @class VelocityCell
  *
- * @brief A class for a clockwise rotation cell
+ * @brief A class for a velocity cell
  *
- * Use an instance of this class for clockwise rotation cells
- * 
  */
-class RotationCellClockwise: public Bionav::NeuronSet
+class VelocityCell: public Bionav::NeuronSet
 {
     public:
         /* ====================  LIFECYCLE     ======================================= */
-        RotationCellClockwise ();                             /* constructor      */
-        RotationCellClockwise ( const RotationCellClockwise &other );   /* copy constructor */
-        ~RotationCellClockwise ();                            /* destructor       */
+        VelocityCell ();                             /* constructor      */
+        VelocityCell ( const VelocityCell &other );   /* copy constructor */
+        ~VelocityCell ();                            /* destructor       */
 
         /* ====================  ACCESSORS     ======================================= */
 
@@ -64,7 +63,7 @@ class RotationCellClockwise: public Bionav::NeuronSet
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> UpdateFiringRate (double angularVelocity );
         /* ====================  OPERATORS     ======================================= */
 
-        RotationCellClockwise& operator = ( const RotationCellClockwise &other ); /* assignment operator */
+        VelocityCell& operator = ( const VelocityCell &other ); /* assignment operator */
 
     protected:
         /* ====================  METHODS       ======================================= */
@@ -77,8 +76,9 @@ class RotationCellClockwise: public Bionav::NeuronSet
         /* ====================  DATA MEMBERS  ======================================= */
         double mAlpha;
         double mBeta;
+        
 
-}; /* -----  end of class RotationCellClockwise  ----- */
+}; /* -----  end of class VelocityCell  ----- */
 
 
-#endif   /* ----- #ifndef RotationCellClockwise_INC  ----- */
+#endif   /* ----- #ifndef VelocityCell_INC  ----- */

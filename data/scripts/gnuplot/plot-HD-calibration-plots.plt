@@ -1,5 +1,5 @@
 set terminal postscript eps enhanced color font "Helvetica,20" linewidth 1 
-set output "Calibration-synaptic-weight-cell50.eps"
+set output "Calibration-HD-synaptic-weight-cell50.eps"
 set xlabel "Head direction cells"
 set ylabel "Synaptic weight"
 set title ""
@@ -8,7 +8,7 @@ set term wxt
 set out
 
 set terminal postscript eps enhanced color font "Helvetica,20" linewidth 1 
-set output "Calibration1-synaptic-weight-cell50.eps"
+set output "Calibration1-HD-synaptic-weight-cell50.eps"
 set xlabel "Head direction cells"
 set ylabel "Synaptic weight"
 set title ""
@@ -16,7 +16,7 @@ plot "./Calibrated-HD-synapse-1-50.txt" with lines title "Synaptic weights after
 set term wxt
 set out
 set terminal postscript eps enhanced color font "Helvetica,20" linewidth 1 
-set output "Calibration2-synaptic-weight-cell50.eps"
+set output "Calibration2-HD-synaptic-weight-cell50.eps"
 set xlabel "Head direction cells"
 set ylabel "Synaptic weight"
 set title ""
@@ -25,7 +25,7 @@ set term wxt
 set out
 
 set terminal postscript eps enhanced color font "Helvetica,20" linewidth 1 
-set output "Calibration-synaptic-weight-rotation-cell-clockwise-cell50.eps"
+set output "Calibration-HD-synaptic-weight-rotation-cell-clockwise-cell50.eps"
 set xlabel "Head direction cells"
 set ylabel "Synaptic weight"
 set title ""
@@ -34,7 +34,7 @@ set term wxt
 set out
 
 set terminal postscript eps enhanced color font "Helvetica,20" linewidth 1 
-set output "Calibration-synaptic-weight-rotation-cell-counterclockwise-cell50.eps"
+set output "Calibration-HD-synaptic-weight-rotation-cell-counterclockwise-cell50.eps"
 set xlabel "Head direction cells"
 set ylabel "Synaptic weight"
 set title ""
@@ -43,7 +43,7 @@ set term wxt
 set out
 
 set terminal postscript eps enhanced color font "Helvetica,16" linewidth 1 
-set output "Calibration-synaptic-weight-surface-plot.eps"
+set output "Calibration-HD-synaptic-weight-surface-plot.eps"
 set xlabel "Head direction cells"
 set ylabel "Head direction cells"
 set zlabel "Synaptic \nweight"
