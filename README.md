@@ -11,3 +11,6 @@ The source code was used in the following publications:
 * Sinha, A. & Wang, J. – “Bio-mimetic path integration using a self organizing population of grid cells” – accepted and to be presented at ICANN 2014, Hamburg, Germany.
 
 Please do cite these publications if you make use of the source code. More information can be found at: [http://ankursinha.in/blog/research/](http://ankursinha.in/blog/research/)
+
+## Documentation
+Some doxygen documentation can be found here: [http://ankursinha.in/files/research/bionav-doc/index.html](http://ankursinha.in/files/research/bionav-doc/index.html)
