@@ -2,4 +2,4 @@
 
 Bionav is a ROS stack that aims to implement a bio-mimetic navigation system.
 
-It includes sets of head and place cells to start with.
+Currently, this source code includes an implementation of the path integrator dynamics of head direction cells and grid cells. It is far from a complete navigation solution.
